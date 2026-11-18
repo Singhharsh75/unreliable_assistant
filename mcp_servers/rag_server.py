@@ -8,6 +8,7 @@ Usage:
 """
 import hashlib
 import json
+import logging
 import os
 import re
 import sys
@@ -21,7 +22,10 @@ import numpy as np
 import onnxruntime as ort
 import yaml
 from huggingface_hub import hf_hub_download
+from mcp import MCPError
+from mcp.server.mcpserver import MCPServer
 from nltk.stem import PorterStemmer
+from pydantic import ValidationError
 from rank_bm25 import BM25Okapi
 from tokenizers import Tokenizer
 
@@ -36,6 +40,8 @@ CE_FILE = os.getenv("RAG_RERANK_FILE", "onnx/model_fp16.onnx")
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "  # bge-en-v1.5 query instruction
 MAX_LEN, OVERLAP = 512, 64
 BM25_K1, BM25_B, EF_SEARCH, HNSW_M, RRF_POOL, BATCH = 1.25, 0.75, 64, 32, 40, 32
+SCHEMA_VALIDATION_FAILED, TENANT_SCOPE_VIOLATION = -32001, -32005  # design.md §1.2.5
+audit = logging.getLogger("rag.audit")
 
 _stem = PorterStemmer().stem
 POOL = ThreadPoolExecutor(max_workers=2)  # BM25 and dense run in parallel
@@ -154,26 +160,29 @@ class Retriever:
         self.chunks = [json.loads(line) for line in (index_dir / "chunks.jsonl").read_text().splitlines()]
         self.bm25 = BM25Okapi([c["tokens"] for c in self.chunks], k1=BM25_K1, b=BM25_B)
         self.dense = faiss.read_index(str(index_dir / "dense.faiss"))
-        self.dense.hnsw.efSearch = EF_SEARCH
         bi_encoder(), cross_encoder()  # load models before the first request
 
-    def _allowed(self, i: int, tenant: str, domain: str | None) -> bool:
-        c = self.chunks[i]
-        return (c["tenants"] is None or tenant in c["tenants"]) and (domain is None or c["domain"] == domain)
+    def _allowed(self, tenant: str | None, domain: str | None) -> np.ndarray:
+        """Boolean mask over chunks the caller may see. Applied before top-k so private chunks are never crowded out."""
+        return np.array([(c["tenants"] is None or tenant in c["tenants"]) and (domain is None or c["domain"] == domain)
+                         for c in self.chunks], dtype=bool)  # O(N) per request; precompute per tenant at scale
 
-    # shortcut: tenant/domain filter runs after top-k, so a tenant's private chunks can be crowded out
-    # of the top 50 by shared ones; move to per-tenant indices when tenants have large private corpora.
-    def _bm25(self, query: str, k: int, ok) -> list[tuple[int, float]]:
-        scores = self.bm25.get_scores(bm25_tokens(query))
+    def _bm25(self, query: str, k: int, allowed: np.ndarray) -> list[tuple[int, float]]:
+        scores = np.where(allowed, self.bm25.get_scores(bm25_tokens(query)), 0.0)
         top = np.argsort(-scores)[:k]
-        return [(int(i), float(scores[i])) for i in top if scores[i] > 0 and ok(i)]
+        return [(int(i), float(scores[i])) for i in top if scores[i] > 0]
 
-    def _dense(self, query: str, k: int, ok) -> list[tuple[int, float]]:
-        sims, ids = self.dense.search(embed([QUERY_PREFIX + query]), k)
-        return [(int(i), float(s)) for i, s in zip(ids[0], sims[0]) if i >= 0 and ok(i)]
+    def _dense(self, query: str, k: int, allowed: np.ndarray) -> list[tuple[int, float]]:
+        ids_ok = np.flatnonzero(allowed).astype(np.int64)
+        if ids_ok.size == 0:
+            return []
+        params = faiss.SearchParametersHNSW()  # IDSelector restricts the HNSW graph walk to allowed chunks
+        params.efSearch, params.sel = EF_SEARCH, faiss.IDSelectorBatch(ids_ok)
+        sims, ids = self.dense.search(embed([QUERY_PREFIX + query]), k, params=params)
+        return [(int(i), float(s)) for i, s in zip(ids[0], sims[0]) if i >= 0]
 
     def retrieve(self, req: HybridRetrieveIn) -> HybridRetrieveOut:
-        ok = lambda i: self._allowed(i, req.ctx.tenant_id, req.domain)  # noqa: E731
+        allowed = self._allowed(req.ctx.tenant_id, req.domain)
         lat = {}
 
         def timed(name, fn, *args):
@@ -182,8 +191,8 @@ class Retriever:
             lat[name] = (time.perf_counter() - t0) * 1000
             return res
 
-        f_sparse = POOL.submit(timed, "bm25", self._bm25, req.query, req.bm25_top_k, ok)
-        f_dense = POOL.submit(timed, "dense", self._dense, req.query, req.dense_top_k, ok)
+        f_sparse = POOL.submit(timed, "bm25", self._bm25, req.query, req.bm25_top_k, allowed)
+        f_dense = POOL.submit(timed, "dense", self._dense, req.query, req.dense_top_k, allowed)
         sparse, dense = dict(f_sparse.result()), dict(f_dense.result())
 
         fused = timed("rrf", rrf, [list(sparse), list(dense)], req.rrf_k, RRF_POOL)
@@ -205,10 +214,18 @@ class Retriever:
         )
 
 
-def serve():
-    from mcp.server.mcpserver import MCPServer
+def read_chunk(by_hash: dict[str, dict], chunk_hash: str, tenant_id: str | None) -> str:
+    """Tenant-scoped chunk read (design.md §1.2.2). `tenant_id=None` means no caller context: shared chunks only."""
+    c = by_hash.get(chunk_hash)
+    if c is None:
+        raise MCPError(-32602, "unknown chunk")
+    if c["tenants"] is not None and tenant_id not in c["tenants"]:
+        audit.warning(json.dumps({"event": "tenant_scope_violation", "tenant_id": tenant_id, "chunk_hash": chunk_hash}))
+        raise MCPError(TENANT_SCOPE_VIOLATION, "TENANT_SCOPE_VIOLATION")
+    return json.dumps({k: c[k] for k in ("chunk_hash", "text", "note_id", "domain")})
 
-    retriever = Retriever()
+
+def build_server(retriever: Retriever) -> MCPServer:
     by_hash = {c["chunk_hash"]: c for c in retriever.chunks}
     mcp = MCPServer("mcp-hybrid-rag")
 
@@ -216,16 +233,22 @@ def serve():
     def hybrid_retrieve(req: dict) -> dict:
         """3-stage hybrid retrieval. `req` must match contracts.models.HybridRetrieveIn."""
         # validate as JSON so strict mode still accepts UUID strings from the wire
-        return retriever.retrieve(HybridRetrieveIn.model_validate_json(json.dumps(req))).model_dump()
+        try:
+            parsed = HybridRetrieveIn.model_validate_json(json.dumps(req))
+        except ValidationError as e:
+            raise MCPError(SCHEMA_VALIDATION_FAILED, "SCHEMA_VALIDATION_FAILED", json.loads(e.json())) from e
+        return retriever.retrieve(parsed).model_dump()
 
     @mcp.resource("rag://chunks/{chunk_hash}")
     def chunk(chunk_hash: str) -> str:
-        c = by_hash.get(chunk_hash)
-        if c is None or c["tenants"] is not None:  # no tenant context on resource reads: shared chunks only
-            raise ValueError("TENANT_SCOPE_VIOLATION or unknown chunk")
-        return json.dumps({k: c[k] for k in ("chunk_hash", "text", "note_id", "domain")})
+        # resource reads carry no CallContext, so they serve shared chunks only (see read_chunk)
+        return read_chunk(by_hash, chunk_hash, tenant_id=None)
 
-    mcp.run("stdio")
+    return mcp
+
+
+def serve():
+    build_server(Retriever()).run("stdio")
 
 
 def _demo_req(query: str, tenant: str = "tenant_demo") -> HybridRetrieveIn:
