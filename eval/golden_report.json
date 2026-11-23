@@ -1,0 +1,27 @@
+{
+  "target": {
+    "factoid": 63,
+    "complex_reasoning": 63,
+    "multi_hop": 50,
+    "summary": 37,
+    "negative": 37
+  },
+  "kept": {
+    "factoid": 63,
+    "complex_reasoning": 63,
+    "multi_hop": 50,
+    "summary": 37,
+    "negative": 37
+  },
+  "rejected": {
+    "judge_grounded": 4,
+    "judge_gold_complete": 2,
+    "judge_category_fit": 1
+  },
+  "chunks": 36,
+  "notes": 36,
+  "source": {
+    "candidates": "candidates_manual.jsonl",
+    "verdicts": "judge_verdicts.jsonl"
+  }
+}

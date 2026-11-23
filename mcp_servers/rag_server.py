@@ -35,11 +35,15 @@ ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.getenv("RAG_VAULT", ROOT / "knowledge_vault"))
 INDEX = Path(os.getenv("RAG_INDEX", ROOT / "indexes" / "rag"))
 BI_REPO, BI_FILE = "BAAI/bge-large-en-v1.5", "onnx/model.onnx"
-CE_REPO = "onnx-community/bge-reranker-v2-m3-ONNX"
-CE_FILE = os.getenv("RAG_RERANK_FILE", "onnx/model_fp16.onnx")
+# MiniLM-L6: 10x faster than bge-reranker-v2-m3 int8 on CPU for -0.003 prec@4 on the golden set.
+# Design-spec model: RAG_RERANK_REPO=onnx-community/bge-reranker-v2-m3-ONNX RAG_RERANK_FILE=onnx/model_int8.onnx
+CE_REPO = os.getenv("RAG_RERANK_REPO", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+CE_FILE = os.getenv("RAG_RERANK_FILE", "onnx/model.onnx")
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "  # bge-en-v1.5 query instruction
 MAX_LEN, OVERLAP = 512, 64
 BM25_K1, BM25_B, EF_SEARCH, HNSW_M, RRF_POOL, BATCH = 1.25, 0.75, 64, 32, 40, 32
+# cross-encoder cost is linear in pairs; rerank only the RRF head (blueprint: 40). Gold recall in the pool is checked by eval.
+RERANK_POOL = int(os.getenv("RAG_RERANK_POOL", "16"))
 SCHEMA_VALIDATION_FAILED, TENANT_SCOPE_VIOLATION = -32001, -32005  # design.md §1.2.5
 audit = logging.getLogger("rag.audit")
 
@@ -196,7 +200,7 @@ class Retriever:
         sparse, dense = dict(f_sparse.result()), dict(f_dense.result())
 
         fused = timed("rrf", rrf, [list(sparse), list(dense)], req.rrf_k, RRF_POOL)
-        ids = [i for i, _ in fused]
+        ids = [i for i, _ in fused][:RERANK_POOL]
         scores = timed("rerank", rerank, req.query, [self.chunks[i]["text"] for i in ids]) if ids else np.array([])
         lat.setdefault("rerank", 0.0)
 

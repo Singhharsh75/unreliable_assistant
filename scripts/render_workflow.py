@@ -26,7 +26,7 @@ with cluster(g, "ingress", "1. Ingress & Security Layer", "#e8f1fb") as c:
     c.node("ingress", "Ingress\nAPI Gateway (NGINX/Envoy)\nauthN · X-Tenant-ID check · traceparent")
     c.node("pii", "Pre-Exec Plugin\nPII Redactor\n(fail-closed, p10)")
     c.node("inj", "Pre-Exec Plugin\nInjection Classifier\n(fail-closed, p20)")
-    c.node("cache", "Redis Semantic Cache Check\nSHA256(tenant:user:norm_query)", shape="diamond", style="filled")
+    c.node("cache", "Redis Semantic Cache Check\nSHA256(tenant:norm_query)", shape="diamond", style="filled")
     c.edges([("ingress", "pii"), ("pii", "inj"), ("inj", "cache")])
 
 with cluster(g, "triage", "2. Triage & Subagent Routing", "#fdf3e1") as c:
@@ -52,7 +52,7 @@ with cluster(g, "control", "4. Control Plane & Egress", "#efe6f7") as c:
     c.node("react", "Bounded ReAct Loop\nmax_steps=5 · 450 ms budget\nINIT→…→VERIFY→DONE/HALTED")
     c.node("breaker", "Circuit Breaker\n(tool, args_hash) fails ≥ 2\n→ HALTED_BREAKER")
     c.node("hitl", "Tier 3 HITL Gate\nPENDING_APPROVAL → Reviewer", fillcolor="#fde2b8")
-    c.node("llm", "LLM Generate\nvLLM · TTFT ≤ 180 ms")
+    c.node("llm", "LLM Generate\nClaude (claude-opus-5-5) · TTFT ≤ 180 ms\nbuffered → NLI verify → release")
     c.node("post", "Post-Exec Plugins\nRAGAS Auditor (faithfulness ≥ 0.92)\n+ cache write (TTL 300±45 s)")
     c.node("otel", "OTel Export\n→ Prometheus · Tempo · Grafana")
     c.node("egress", "Egress\ntenant_id re-check · response")
