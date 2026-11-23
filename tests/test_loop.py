@@ -26,8 +26,8 @@ class Script:
         self.verdict = verdict
         self.seen = []
 
-    async def reason(self, goal, observations):
-        self.seen.append(list(observations))
+    async def reason(self, prompt):
+        self.seen.append(prompt)
         nxt = self.actions.pop(0)
         if callable(nxt):
             return await nxt()
@@ -126,9 +126,9 @@ def test_total_loop_budget_stops_further_passes():
     now = {"t": 0.0}
 
     class Ticking(Script):
-        async def reason(self, goal, observations):
+        async def reason(self, prompt):
             now["t"] += 0.2  # each reasoning pass costs 200 ms of the 450 ms budget
-            return await super().reason(goal, observations)
+            return await super().reason(prompt)
 
     actions = [ToolAction("lookup_lot", {"lot_id": f"LOT-{i:05d}"}) for i in range(1, 6)]
     res = run_loop(Ticking(actions), clock=lambda: now["t"])
@@ -137,13 +137,10 @@ def test_total_loop_budget_stops_further_passes():
 
 
 def test_llm_step_timeout_halts():
-    async def slow_reason(goal, observations):
-        await asyncio.sleep(0.5)
-        return FinalAnswer("late")
-
     class Slow(Script):
-        async def reason(self, goal, observations):
-            return await slow_reason(goal, observations)
+        async def reason(self, prompt):
+            await asyncio.sleep(0.5)
+            return FinalAnswer("late")
 
     res = run_loop(Slow([]), config=LoopConfig(llm_step_timeout_s=0.02))
     assert res.state is State.HALTED and res.halt_reason == "llm_step_timeout"

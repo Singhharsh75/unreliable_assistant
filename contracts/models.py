@@ -50,3 +50,11 @@ class HybridRetrieveOut(BaseModel):
     top_score: float
     abstain: bool
     stage_latency_ms: dict[Literal["bm25", "dense", "rrf", "rerank"], float]
+
+
+class SessionFact(BaseModel):
+    """design.md §1.2.4. Only verified facts are persisted."""
+    model_config = ConfigDict(strict=True, extra="forbid")
+    key: str = Field(pattern=r"^[a-z_]{1,64}$")
+    value: str = Field(max_length=512)
+    source_chunk_hash: str | None = Field(default=None, pattern=CHUNK_RE)

@@ -15,6 +15,7 @@ import asyncio
 import time
 from collections import Counter
 from dataclasses import dataclass, field
+from collections.abc import Callable
 from enum import Enum
 from typing import Any, Protocol
 from uuid import uuid4
@@ -30,6 +31,10 @@ from harness.errors import (
     RBAC_DENIED,
     TENANT_SCOPE_VIOLATION,
 )
+from context.anchor import ReActPrompt, Turn, build_anchor
+from context.compress import compress_observation
+from context.memory import SessionMemory
+from contracts.models import SessionFact
 from harness.tool_harness import Tier, ToolExecutionHarness, canonical_hash
 
 
@@ -63,9 +68,13 @@ class FinalAnswer:
 
 
 class Planner(Protocol):
-    async def reason(self, goal: str, observations: list[dict[str, Any]]) -> ToolAction | FinalAnswer: ...
+    async def reason(self, prompt: ReActPrompt) -> ToolAction | FinalAnswer: ...
 
     async def verify(self, answer: str, observations: list[dict[str, Any]]) -> bool: ...
+
+
+# Extracts facts from a verified answer and its raw observations. Only called on DONE.
+FactExtractor = Callable[[str, list[dict[str, Any]]], list[SessionFact]]
 
 
 @dataclass(frozen=True)
@@ -94,15 +103,29 @@ class BoundedLoop:
         planner: Planner,
         config: LoopConfig | None = None,
         clock=time.monotonic,
+        memory: SessionMemory | None = None,
+        fact_extractor: FactExtractor | None = None,
     ) -> None:
         self.harness = harness
         self.planner = planner
         self.config = config or LoopConfig()
         self.clock = clock
+        self.memory = memory or SessionMemory()
+        self.fact_extractor = fact_extractor
 
-    async def run(self, goal: str, *, base_ctx: dict[str, Any], caller_tier: Tier) -> LoopResult:
-        """Run one task. `base_ctx` holds tenant_id, user_id, session_id, traceparent. A fresh UUIDv4 is minted per tool call."""
+    async def run(
+        self,
+        goal: str,
+        *,
+        base_ctx: dict[str, Any],
+        caller_tier: Tier,
+        policies: tuple[str, ...] = (),
+    ) -> LoopResult:
+        """Run one task. `base_ctx` holds tenant_id, user_id, session_id, traceparent. A fresh UUIDv4 is minted per tool call.
+        The anchor is built once per run from `goal`. The planner sees only the anchor and compressed turns, never raw results."""
         cfg = self.config
+        tenant, session = base_ctx["tenant_id"], base_ctx["session_id"]
+        anchor = build_anchor(goal, policies)
         t0 = self.clock()
         trace: list[State] = [State.INIT]
         observations: list[dict[str, Any]] = []
@@ -129,9 +152,10 @@ class BoundedLoop:
 
             move(State.REASONING)
             iterations += 1
+            prompt = ReActPrompt(anchor=anchor, turns=self.memory.window(tenant, session))
             try:
                 action = await asyncio.wait_for(
-                    self.planner.reason(goal, observations),
+                    self.planner.reason(prompt),
                     timeout=min(cfg.llm_step_timeout_s, max(remaining(), 0.0)),
                 )
             except TimeoutError:
@@ -147,6 +171,9 @@ class BoundedLoop:
                 except Exception:  # timeout or verifier error: an unverified draft is never released
                     return halt(State.HALTED, "verify_failed")
                 if ok:
+                    if self.fact_extractor is not None:
+                        facts = self.fact_extractor(action.text, observations)
+                        self.memory.persist_verified(tenant, session, facts)
                     move(State.DONE)
                     return halt(State.DONE, None, action.text)
                 return halt(State.HALTED, "verification_veto")
@@ -164,17 +191,21 @@ class BoundedLoop:
                 )
                 value = res.value.model_dump(mode="json") if isinstance(res.value, BaseModel) else res.value
                 obs = {"tool": action.tool, "ok": True, "result": value}
+                compressed = compress_observation(value)
             except HarnessError as e:
                 if e.code in NON_RETRYABLE:
                     return halt(State.HALTED, f"{e.name}: {e.message}")
                 failures[key] += 1
                 obs = {"tool": action.tool, "ok": False, "error": e.name, "detail": e.message}
+                compressed = e.name
             except TimeoutError:
                 failures[key] += 1
                 obs = {"tool": action.tool, "ok": False, "error": "UPSTREAM_TIMEOUT", "detail": "step budget exceeded"}
+                compressed = "UPSTREAM_TIMEOUT"
 
             move(State.OBSERVATION)
             observations.append(obs)
+            self.memory.append_turn(tenant, session, Turn(tool=action.tool, observation=compressed))
 
             if failures[key] >= cfg.breaker_threshold:
                 move(State.HALTED_BREAKER)
