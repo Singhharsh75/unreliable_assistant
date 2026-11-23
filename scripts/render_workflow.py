@@ -52,7 +52,7 @@ with cluster(g, "control", "4. Control Plane & Egress", "#efe6f7") as c:
     c.node("react", "Bounded ReAct Loop\nmax_steps=5 · 450 ms budget\nINIT→…→VERIFY→DONE/HALTED")
     c.node("breaker", "Circuit Breaker\n(tool, args_hash) fails ≥ 2\n→ HALTED_BREAKER")
     c.node("hitl", "Tier 3 HITL Gate\nPENDING_APPROVAL → Reviewer", fillcolor="#fde2b8")
-    c.node("llm", "LLM Generate\nClaude (claude-opus-5-5) · TTFT ≤ 180 ms\nbuffered → NLI verify → release")
+    c.node("llm", "LLM Generate\nClaude (claude-haiku-5-5) · TTFT ≤ 180 ms\nbuffered → NLI verify → release")
     c.node("post", "Post-Exec Plugins\nRAGAS Auditor (faithfulness ≥ 0.92)\n+ cache write (TTL 300±45 s)")
     c.node("otel", "OTel Export\n→ Prometheus · Tempo · Grafana")
     c.node("egress", "Egress\ntenant_id re-check · response")

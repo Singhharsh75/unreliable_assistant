@@ -8,6 +8,7 @@ Gold chunk hashes come from rag_server.chunk_notes, so they match indexes/rag ex
 """
 import argparse
 import json
+import os
 import random
 import re
 import sys
@@ -20,7 +21,10 @@ from pydantic import BaseModel, Field
 
 from mcp_servers.rag_server import VAULT, chunk_notes, load_notes
 
-GENERATOR, JUDGE = "claude-opus-5-5", "claude-sonnet-5-5"  # different judge model avoids self-preference bias
+# cheapest Claude for both (design.md ADR-008). Same-model judging risks self-preference bias;
+# set GOLDEN_JUDGE_MODEL=claude-sonnet-5-5 (~20x cost) for a stricter rebuild.
+GENERATOR = os.getenv("GOLDEN_GENERATOR_MODEL", "claude-haiku-5-5")
+JUDGE = os.getenv("GOLDEN_JUDGE_MODEL", "claude-haiku-5-5")
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 STRATA = {"factoid": 0.25, "complex_reasoning": 0.25, "multi_hop": 0.20, "summary": 0.15, "negative": 0.15}
 BRIEF = {
@@ -108,8 +112,9 @@ class Builder:
         self.notes = sorted({c["note_id"] for c in chunks})
 
     def _call(self, model: str, effort: str, prompt: str, fmt):
+        fallback = {} if "haiku" in model else {"betas": [FALLBACK_BETA], "fallbacks": "default"}  # Haiku 5.5: none
         r = self.client.beta.messages.parse(
-            model=model, max_tokens=16000, betas=[FALLBACK_BETA], fallbacks="default",
+            model=model, max_tokens=16000, **fallback,
             system=self.system, output_config={"effort": effort}, output_format=fmt,
             messages=[{"role": "user", "content": prompt}])
         return None if r.stop_reason == "refusal" else r.parsed_output

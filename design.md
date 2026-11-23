@@ -22,7 +22,7 @@ The prototype we inherited has five known failures. Each one maps to a control i
 |---|---|---|
 | Agent runtime & API | Python 3.11, FastAPI, Uvicorn (async) | MCP host client (`mcp.ClientSession`) |
 | Sparse + dense retrieval | rank-bm25, FAISS HNSW, `bge-large-en-v1.5` (ONNX) | MCP server `mcp-hybrid-rag` (stdio) |
-| LLM | Claude via the Anthropic API (`anthropic` SDK), model `claude-opus-5-5` | Called by the Retrieval, Execution and Verification subagents |
+| LLM | Claude via the Anthropic API (`anthropic` SDK), model `claude-haiku-5-5` (ADR-008; `claude-opus-5-5` is the upgrade path) | Called by the Retrieval, Execution and Verification subagents |
 | Reranker | ONNX Runtime, `ms-marco-MiniLM-L-6-v2` FP32 (ADR-006; `bge-reranker-v2-m3` int8 is the fallback) | In-process / Triton microservice |
 | State & cache | SQLite (local), PostgreSQL +pgvector (dev, prod), Redis Cluster | MCP server `mcp-state-store` (Streamable HTTP) |
 | Token compression | Obsidian vault + Graphify graph | MCP server `mcp-graphify-vault` (stdio) |
@@ -240,7 +240,7 @@ flowchart LR
   VER -- audit only --> SS
   SS --> PG[(PostgreSQL + pgvector<br/>session_facts · approvals · audit chain)]
   SS --> REDIS
-  RET & EXE & VER --> LLM[Claude · Anthropic API<br/>claude-opus-5-5 · streaming · prompt cache]
+  RET & EXE & VER --> LLM[Claude · Anthropic API<br/>claude-haiku-5-5 · streaming · prompt cache]
   POST --> OTEL[OTel Collector] --> OBS[Prometheus · Tempo · Grafana]
   PG -. PENDING_APPROVAL .-> HITL[Reviewer UI / API]
 ```
@@ -486,9 +486,19 @@ The blueprint asks for 12 rows; this draft has 14. Rows 13–14 are additions an
   - The default eval is a **deterministic stratified sample of 50 questions** (seed 7, same category mix as the full set). `--limit 0` runs all 250.
   - Context precision and recall are computed **by the RAGAS definitions with gold chunk hashes as relevance labels**: precision is rank-weighted (mean precision@k over gold ranks) and recall is the share of gold chunks retrieved. A question where retrieval abstains scores 0 on both. This is exact, free and deterministic, with the same thresholds (≥ 0.88 / ≥ 0.85). ragas' own `IDBasedContextPrecision` is not used because it computes plain set precision, a different metric.
   - Answer relevancy uses `strictness=1` (1 reverse question, not 3).
-  - Default models are the cheapest paid ones: generator Claude Haiku 5.5. The judge is `deepseek/deepseek-v4-flash` on OpenRouter (another vendor, so it does not grade its own family) or Claude Haiku 5.5 on the Anthropic API. Free `:free` models are supported (run serially for the 20 requests/minute cap), but the 50-requests/day cap is too low for a default run. Set `GENERATOR_MODEL` to Claude Opus 5.5 to certify the production LLM (§0).
+  - Default models are the cheapest paid ones: generator Claude Haiku 5.5, the production LLM (ADR-008). The judge is `deepseek/deepseek-v4-flash` on OpenRouter (another vendor, so it does not grade its own family) or Claude Haiku 5.5 on the Anthropic API. Free `:free` models are supported (run serially for the 20 requests/minute cap), but the 50-requests/day cap is too low for a default run.
   - This leaves about 5 judge calls per answerable question: roughly 265 calls and about $0.17 per default run on OpenRouter (about $0.85 for all 250 questions).
 - **Consequences:**
   - With 50 questions, a metric's sampling error is about ±4–5 pts, so a score within ~0.05 of a threshold is inconclusive. Re-run with `--limit 0` and `JUDGE_MODEL` set to a Sonnet before trusting a borderline pass or fail.
   - ID-based context metrics treat any non-gold chunk as irrelevant, which is stricter than ragas' LLM variants when two chunks say the same thing.
   - A Haiku judge is less strict than Sonnet on faithfulness. Spot-check a few answers in `eval/runs/answers.jsonl` against their chunks.
+
+### ADR-008 — LLM: Claude Haiku 5.5 everywhere (amends §0)
+- **Context:** This is a side project with low traffic and a small budget. Claude Opus 5.5 costs $4 / $20 per 1M tokens; Claude Haiku 5.5 costs $0.10 / $0.50, 40× less.
+- **Decision:**
+  - The Retrieval, Execution and Verification subagents call `claude-haiku-5-5`.
+  - Eval scripts default to the cheapest models: `run_ragas.py` uses Haiku 5.5 as generator with `deepseek/deepseek-v4-flash` (OpenRouter) or Haiku 5.5 as judge (ADR-007), and `build_golden.py` uses Haiku 5.5 for generation and judging (`GOLDEN_*_MODEL` to override).
+  - Haiku 5.5 has no server-side refusal fallback, so code sends `fallbacks` only for non-Haiku models.
+- **Consequences:**
+  - Expect lower faithfulness and multi-hop answer quality than Opus. Gate 3 measures this directly; if KPI-20/21 fail, upgrade the generator to `claude-sonnet-5-5`, then `claude-opus-5-5`, via `GENERATOR_MODEL`.
+  - Using Haiku as both generator and judge in `build_golden.py` risks self-preference bias. Rebuild with `GOLDEN_JUDGE_MODEL=claude-sonnet-5-5` before trusting the golden set for a release decision.
