@@ -1,0 +1,65 @@
+{
+  "provider": "openrouter",
+  "judge": "anthropic/claude-haiku-5.5",
+  "generator": "anthropic/claude-haiku-5.5",
+  "answerable": 43,
+  "gates": {
+    "faithfulness": {
+      "score": 0.8236,
+      "threshold": 0.92,
+      "pass": false
+    },
+    "answer_relevancy": {
+      "score": 0.7657,
+      "threshold": 0.9,
+      "pass": false
+    },
+    "id_context_precision": {
+      "score": 0.8721,
+      "threshold": 0.88,
+      "pass": false
+    },
+    "id_context_recall": {
+      "score": 0.8488,
+      "threshold": 0.85,
+      "pass": false
+    },
+    "context_entity_recall": {
+      "score": 0.4536,
+      "threshold": 0.85,
+      "pass": false
+    }
+  },
+  "by_category": {
+    "complex_reasoning": {
+      "faithfulness": 0.596,
+      "answer_relevancy": 0.7376,
+      "id_context_precision": 0.8462,
+      "id_context_recall": 0.8462,
+      "context_entity_recall": 0.3269
+    },
+    "factoid": {
+      "faithfulness": 0.8821,
+      "answer_relevancy": 0.7883,
+      "id_context_precision": 0.8846,
+      "id_context_recall": 0.9231,
+      "context_entity_recall": 0.4615
+    },
+    "multi_hop": {
+      "faithfulness": 0.926,
+      "answer_relevancy": 0.7777,
+      "id_context_precision": 0.8,
+      "id_context_recall": 0.65,
+      "context_entity_recall": 0.3917
+    },
+    "summary": {
+      "faithfulness": 0.9916,
+      "answer_relevancy": 0.7588,
+      "id_context_precision": 1.0,
+      "id_context_recall": 1.0,
+      "context_entity_recall": 0.7624
+    }
+  },
+  "negative_abstain_rate": 1.0,
+  "pass": false
+}

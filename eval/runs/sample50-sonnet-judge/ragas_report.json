@@ -1,0 +1,65 @@
+{
+  "provider": "openrouter",
+  "judge": "anthropic/claude-sonnet-5.5",
+  "generator": "anthropic/claude-sonnet-5.5",
+  "answerable": 43,
+  "gates": {
+    "faithfulness": {
+      "score": 0.8034,
+      "threshold": 0.92,
+      "pass": false
+    },
+    "answer_relevancy": {
+      "score": 0.7698,
+      "threshold": 0.9,
+      "pass": false
+    },
+    "id_context_precision": {
+      "score": 0.8721,
+      "threshold": 0.88,
+      "pass": false
+    },
+    "id_context_recall": {
+      "score": 0.8488,
+      "threshold": 0.85,
+      "pass": false
+    },
+    "context_entity_recall": {
+      "score": 0.5939,
+      "threshold": 0.85,
+      "pass": false
+    }
+  },
+  "by_category": {
+    "complex_reasoning": {
+      "faithfulness": 0.6686,
+      "answer_relevancy": 0.7351,
+      "id_context_precision": 0.8462,
+      "id_context_recall": 0.8462,
+      "context_entity_recall": 0.4615
+    },
+    "factoid": {
+      "faithfulness": 0.8974,
+      "answer_relevancy": 0.8331,
+      "id_context_precision": 0.8846,
+      "id_context_recall": 0.9231,
+      "context_entity_recall": 0.6923
+    },
+    "multi_hop": {
+      "faithfulness": 0.7475,
+      "answer_relevancy": 0.6989,
+      "id_context_precision": 0.8,
+      "id_context_recall": 0.65,
+      "context_entity_recall": 0.525
+    },
+    "summary": {
+      "faithfulness": 0.9589,
+      "answer_relevancy": 0.8176,
+      "id_context_precision": 1.0,
+      "id_context_recall": 1.0,
+      "context_entity_recall": 0.7551
+    }
+  },
+  "negative_abstain_rate": 0.8571,
+  "pass": false
+}
