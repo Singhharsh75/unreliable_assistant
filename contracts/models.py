@@ -2,7 +2,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 TENANT_RE = r"^tenant_[a-z0-9]{1,32}$"
 USER_RE = r"^user_[a-z0-9]{1,64}$"
@@ -101,10 +101,42 @@ class LookupLotIn(_In):
     lot_id: str = Field(pattern=LOT_RE)
 
 
+class LotPayload(BaseModel):
+    """release, quarantine, hold, reject"""
+    model_config = ConfigDict(strict=True, extra="forbid")
+    lot_id: str = Field(pattern=LOT_RE)
+
+
+class RecordPayload(LotPayload):
+    """open_deviation, open_capa: the reviewer needs to know what happened"""
+    # no control or bidirectional-override characters: they can make a reviewer see something else
+    description: str = Field(min_length=1, max_length=500, pattern="^[^\\x00-\\x1f\\x7f\u202a-\u202e\u2066-\u2069]+$")
+
+
+class StatusPayload(LotPayload):
+    """update_status"""
+    status: Literal["QUARANTINE", "HOLD", "RELEASED", "REJECTED"]
+
+
+# The three shapes are disjoint (extra fields are forbidden), so the union never picks the wrong one.
+PAYLOADS: dict[str, type[LotPayload]] = {
+    "release": LotPayload, "quarantine": LotPayload, "hold": LotPayload, "reject": LotPayload,
+    "open_deviation": RecordPayload, "open_capa": RecordPayload, "update_status": StatusPayload,
+}
+
+
 class SubmitTransactionIn(_In):
     action: TransactionAction
-    payload: dict[str, str | int | float | bool | None]
+    payload: LotPayload | RecordPayload | StatusPayload = Field(
+        description="release, quarantine, hold, reject: LotPayload. open_deviation, open_capa: RecordPayload. "
+                    "update_status: StatusPayload.")
     justification: str = Field(min_length=1, max_length=1000)
+
+    @model_validator(mode="after")
+    def _payload_fits_action(self) -> "SubmitTransactionIn":
+        if type(self.payload) is not PAYLOADS[self.action]:
+            raise ValueError(f"{self.action} needs a {PAYLOADS[self.action].__name__}")
+        return self
 
 
 class GetApprovalIn(_In):

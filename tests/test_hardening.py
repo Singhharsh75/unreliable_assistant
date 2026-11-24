@@ -47,7 +47,8 @@ def test_tool_argument_fuzzing_never_crashes_or_corrupts():
 
     f = redteam.fuzz_run()
     assert f["n"] >= 150 and not f["crashes"] and f["chain_ok"] and f["tables_ok"]
-    assert not [a for a in f["accepted"] if a.startswith(("lookup_lot", "get_approval", "put_session_fact"))]
+    assert not [a for a in f["accepted"] if a.startswith(("lookup_lot", "get_approval", "put_session_fact",
+                                                             "submit_transaction.payload"))]
     assert not [a for a in f["accepted"] if "ctx.tenant_id" in a]
 
 

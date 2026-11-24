@@ -6,14 +6,17 @@ mitigation for each new incident by changing RuntimeConfig, which the orchestrat
 A mitigation stays on until an operator calls resolve(); it is never rolled back automatically.
 
 | Incident               | Trigger                                    | Mitigation                                          |
-| latency_breach         | agent.query p95 > 550 ms over 30 s          | semantic cache cosine 0.92, BM25/dense top_k 50->25 |
+| latency_breach         | agent.query p95 > 550 ms over 30 s          | aggressive answer cache, BM25/dense top_k 50->25    |
 | hallucination_surge    | RAGAS faithfulness < 0.90 over 5 min        | rerank cutoff 0.42->0.55, extractive-quote mode     |
 | mcp_server_hang        | > 1% of a pool's calls slower than 150 ms   | trip the pool's bulkhead, fail over, restart worker |
 | cache_stampede_or_leak | tenant key collision, or Redis CPU > 85%    | key = SHA256(tenant:user:query), TTL 300 s ± 45 s   |
 
-shortcut: the semantic cache and Redis (Gate 17) and a read-replica index do not exist yet, so the cache knobs,
-`rag_index` failover and the worker restart are recorded in RuntimeConfig and the incident log but have no effect.
-Wire them when the cache and the replica index land.
+api/main.py runs evaluate() in the background and wires every knob: the orchestrator hands the cache knobs to AnswerCache
+on each call, `rag_index` picks the retriever and bulkhead for each retrieval, and a restart replaces the pool's threads.
+
+shortcut: resolve() has no endpoint (the API has no operator authentication yet), so an API restart closes incidents;
+add one with the gateway. redis_cpu stays None until there is a Redis to read it from. The replica shares the primary's
+ONNX sessions, so a hang inside ONNX Runtime takes out both: run it in its own process at scale.
 """
 from __future__ import annotations
 
@@ -42,7 +45,7 @@ class RuntimeConfig:
     top_k: int = 50                           # BM25 and dense candidates
     min_rerank_score: float = 0.42            # abstention cutoff (ADR-006)
     extractive_only: bool = False             # release only verbatim quotes, never a generated draft
-    cache_cosine_threshold: float | None = None  # None = exact-key cache only
+    cache_aggressive: bool = False            # also match filler-free word sequences (context/cache.py)
     cache_key_scope: Literal["tenant", "tenant_user"] = "tenant"
     cache_ttl_s: int = 300
     cache_ttl_jitter_s: int = 45
@@ -129,10 +132,13 @@ class IncidentResponder:
         *,
         auditor: Any = None,  # eval.ragas_auditor.RagasAuditor, for the faithfulness window
         bulkheads: dict[str, Bulkhead] | None = None,
+        cache: Any = None,  # context.cache.AnswerCache, for tenant key collisions
+        workers: dict[str, Callable[[], None]] | None = None,  # pool -> restart of what runs behind it
         thresholds: Thresholds | None = None,
     ) -> None:
         self.metrics, self.config, self.auditor = metrics, config, auditor
-        self.bulkheads = bulkheads or {}
+        self.bulkheads, self.cache, self.workers = bulkheads or {}, cache, workers or {}
+        self._leaks_seen = 0
         self.t = thresholds or Thresholds()
         self.active: dict[str, Incident] = {}
         self.history: list[Incident] = []
@@ -163,6 +169,8 @@ class IncidentResponder:
             return
         for f in _KNOBS[name]:
             setattr(self.config, f, getattr(self._defaults, f))
+        if name == "cache_stampede_or_leak":
+            self.metrics.cache_collisions = 0  # or the next evaluate() reopens it on the old count
         if name == "mcp_server_hang":
             for b in self.bulkheads.values():
                 b.reset()
@@ -174,9 +182,9 @@ class IncidentResponder:
         p95, n = self.metrics.p95("agent.query", self.t.latency_window_s)
         if p95 is None or n < self.t.latency_min_samples or p95 <= self.t.latency_p95_ms:
             return None
-        self.config.cache_cosine_threshold, self.config.top_k = 0.92, 25
+        self.config.cache_aggressive, self.config.top_k = True, 25
         return f"e2e p95 {p95:.0f} ms > {self.t.latency_p95_ms:.0f} ms over {n} requests", [
-            "cache_cosine_threshold=0.92", "top_k=25"]
+            "cache_aggressive=true", "top_k=25"]
 
     def _faithfulness(self) -> tuple[str, list[str]] | None:
         if self.auditor is None:
@@ -200,17 +208,23 @@ class IncidentResponder:
             return None
         actions = []
         for pool, _, _ in hung_pools:
+            if pool == "rag":  # fail over first, so no call meets the tripped primary
+                self.config.rag_index = "replica"
+                actions.append("rag_index=replica")
             if pool in self.bulkheads:
                 self.bulkheads[pool].trip()
                 actions.append(f"trip_bulkhead:{pool}")
-            if pool == "rag":
-                self.config.rag_index = "replica"
-                actions.append("rag_index=replica")
-            actions.append(f"restart_worker:{pool}")
+                self.bulkheads[pool].restart()
+                if pool in self.workers:
+                    self.workers[pool]()
+                actions.append(f"restart_worker:{pool}")
         detail = ", ".join(f"{p} {s}/{n} > {self.t.hang_ms:.0f} ms" for p, s, n in hung_pools)
         return f"MCP timeouts: {detail}", actions
 
     def _cache(self) -> tuple[str, list[str]] | None:
+        if self.cache is not None:
+            self.metrics.cache_collisions += self.cache.leaks_blocked - self._leaks_seen
+            self._leaks_seen = self.cache.leaks_blocked
         cpu = self.metrics.redis_cpu
         if self.metrics.cache_collisions == 0 and (cpu is None or cpu <= self.t.redis_cpu):
             return None
@@ -221,7 +235,7 @@ class IncidentResponder:
 
 
 _KNOBS: dict[str, tuple[str, ...]] = {
-    "latency_breach": ("cache_cosine_threshold", "top_k"),
+    "latency_breach": ("cache_aggressive", "top_k"),
     "hallucination_surge": ("min_rerank_score", "extractive_only"),
     "mcp_server_hang": ("rag_index",),
     "cache_stampede_or_leak": ("cache_key_scope", "cache_ttl_s", "cache_ttl_jitter_s"),

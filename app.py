@@ -74,7 +74,17 @@ with t1:
                      **asdict(classify(pre.text))})
         except HarnessError as e:
             st.error(f"Blocked by pre-hook: {e.name}")
-    st.caption("ReAct step trace: needs the LLM planner, which does not exist yet.")
+
+    st.subheader(f"ReAct step trace ({tenant})")
+    runs = [e for e in store().audit_events(tenant) if e.get("type") == "agent.query" and e.get("steps")][-10:]
+    if not runs:
+        st.info(f"No ReAct runs in {STATE_DB}. The API records one for every transaction request (it needs an LLM key).")
+    for e in reversed(runs):
+        with st.expander(f"{e['intent']}: {len(e['steps'])} steps, {e['status']} (trace {e['traceparent'].split('-')[1]})"):
+            for s in e["steps"]:
+                st.markdown(f"**Step {s['step']}: {s.get('tool') or ('final answer' if s.get('final') else 'no action')}**")
+                # plain text: thoughts and outcomes come from the model and the tools, so no markdown is rendered
+                st.text("\n".join(f"{k}: {s[k]}" for k in ("thought", "args", "outcome") if s.get(k)))
 
     st.subheader(f"Tier 3 HITL queue ({tenant})")
     reviewer = st.text_input("Reviewer id", "user_reviewer")
@@ -141,9 +151,12 @@ with t3:
     st.json(getattr(M, model).model_json_schema())
     st.subheader("Pre/post plugins")
     from triage.subagents import SUBAGENTS
-    st.write("Pre-hooks: PII redactor, injection shield (always on, fail closed). Chunk gate: index-time review "
-             "queue. Post: verifier, audit, answer cache. They are not toggleable: turning a guardrail off is a "
-             "code change with review, not a switch.")
+    from harness import plugins
+    st.dataframe([p.model_dump(include={"stage", "priority", "name", "enabled", "fail_closed"})
+                  for s in ("PRE_EXECUTION", "TOOL_DISPATCH", "POST_EXECUTION", "ALL_SPANS")
+                  for p in plugins.load().plugins if p.stage == s], hide_index=True, width="stretch")
+    st.caption("From mcp_config.json. The guardrails are not toggleable: the loader refuses a config that drops, disables "
+               "or reorders them. Chunk gate, verifier, audit and answer cache are fixed in code.")
     st.dataframe([{"subagent": s.name, "servers": ", ".join(sorted(s.mcp_servers)), "tools": ", ".join(sorted(s.allowed_tools)),
                    "max tier": s.max_tier} for s in SUBAGENTS.values()],
                  hide_index=True, width="stretch")
@@ -239,10 +252,11 @@ with t6:
         st.error("No KPI report. Run: uv run eval/kpis.py")
     else:
         summary = report["summary"]
-        cols = st.columns(5)
+        cols = st.columns(len(summary["counts"]) + 2)
         for col, (label, n) in zip(cols, summary["counts"].items()):
             col.metric(label.replace("_", " ").title(), n)
-        cols[4].metric("Release ready", "yes" if summary["release_ready"] else "no")
+        cols[-2].metric("Complete here", "yes" if summary["environment_complete"] else "no")
+        cols[-1].metric("Release ready", "yes" if summary["release_ready"] else "no")
         if summary["release_blockers"]:
             st.warning("Safety KPIs blocking release: " + ", ".join(summary["release_blockers"]))
         st.dataframe(

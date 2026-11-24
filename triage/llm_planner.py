@@ -46,12 +46,14 @@ fact_id means it was saved; do not save it again. Never repeat a call with the s
 
 def tool_catalog(models: dict[str, type[BaseModel]]) -> str:
     """One line per tool: name and the JSON schema of its arguments, without the `ctx` field the loop supplies."""
-    lines = []
+    lines: list[str] = []
     for name, model in models.items():
         schema = model.model_json_schema()
         props = {k: v for k, v in schema.get("properties", {}).items() if k != "ctx"}
         required = [k for k in schema.get("required", []) if k != "ctx"]
-        lines.append(f"- {name}: properties={json.dumps(props, separators=(',', ':'))} required={required}")
+        defs = {k: v for k, v in schema.get("$defs", {}).items() if k != "CallContext"}  # what a $ref in props names
+        lines.append(f"- {name}: properties={json.dumps(props, separators=(',', ':'))} required={required}"
+                     + (f" $defs={json.dumps(defs, separators=(',', ':'))}" if defs else ""))
     return "\n".join(lines)
 
 
@@ -67,25 +69,22 @@ def parse_step(text: str | None) -> dict[str, Any] | None:
 
 
 class LLMPlanner:
-    def __init__(self, complete: Complete, models: dict[str, type[BaseModel]], entail: Entail | None = None,
-                 record_thoughts: bool = False) -> None:
-        self._complete, self._models, self._entail, self._record = complete, models, entail, record_thoughts
+    def __init__(self, complete: Complete, models: dict[str, type[BaseModel]], entail: Entail | None = None) -> None:
+        self._complete, self._models, self._entail = complete, models, entail
         self._system = _SYSTEM.format(tools=tool_catalog(models))
-        self.thoughts: list[str] = []  # eval only (record_thoughts=True): one planner is shared by concurrent requests
 
     async def reason(self, prompt: ReActPrompt) -> ToolAction | FinalAnswer:
         user = "\n".join(prompt.messages())
         step = parse_step(await self._complete(self._system, user))
         if step is None:
             return ToolAction(INVALID_TOOL, {})
-        if self._record:
-            self.thoughts.append(str(step.get("thought", ""))[:300])
+        thought = str(step.get("thought", ""))[:300]
         if step.get("action") == "final" and isinstance(step.get("text"), str) and step["text"].strip():
-            return FinalAnswer(step["text"].strip())
+            return FinalAnswer(step["text"].strip(), thought)
         tool, args = step.get("tool"), step.get("args")
         if step.get("action") == "tool" and tool in self._models and isinstance(args, dict):
-            return ToolAction(tool, {k: v for k, v in args.items() if k != "ctx"})
-        return ToolAction(INVALID_TOOL, {})
+            return ToolAction(tool, {k: v for k, v in args.items() if k != "ctx"}, thought)
+        return ToolAction(INVALID_TOOL, {}, thought)
 
     async def verify(self, answer: str, observations: list[dict[str, Any]]) -> bool:
         """Same claim check the orchestrator applies (triage.orchestrator._VerifiedPlanner)."""

@@ -221,7 +221,7 @@ def test_tier3_cannot_be_reached_by_a_tier1_caller():
     s = StateStore()
     h = ToolExecutionHarness(s.specs())
     with pytest.raises(HarnessError) as e:
-        asyncio.run(h.call("submit_transaction", {"ctx": ctx(), "action": "release", "payload": {}, "justification": "x"},
+        asyncio.run(h.call("submit_transaction", {"ctx": ctx(), "action": "release", "payload": {"lot_id": "LOT-00044"}, "justification": "x"},
                            caller_tier="TIER_1_READ"))
     assert e.value.code == RBAC_DENIED and s.pending("tenant_acme") == []
 
@@ -301,3 +301,63 @@ def test_sync_handler_in_a_pool_keeps_the_trace_context():
 
     outer = asyncio.run(go())
     assert got and got[0] not in (0, outer)  # the thread sees the mcp.client span, a child of `outer`
+
+
+# --- per-action payload schemas (ADR-018) --------------------------------------------------------
+
+@pytest.mark.parametrize("action,payload,ok", [
+    ("release", {"lot_id": "LOT-00044"}, True),
+    ("release", {"lot_id": "lot 44"}, True),  # ID repair still applies inside the payload
+    ("release", {}, False),
+    ("release", {"lot_id": None}, False),
+    ("release", {"lot_id": "LOT-00044", "status": "RELEASED"}, False),
+    ("release", {"lot_id": "LOT-00044' OR '1'='1"}, False),
+    ("open_deviation", {"lot_id": "LOT-00044", "description": "45 minutes at 11 °C"}, True),
+    ("open_capa", {"lot_id": "LOT-00044"}, False),
+    ("open_deviation", {"lot_id": "LOT-00044", "description": "x" * 501}, False),
+    ("open_deviation", {"lot_id": "LOT-00044", "description": "ok\u202eevil"}, False),
+    ("open_deviation", {"lot_id": "LOT-00044", "description": "a\x00b"}, False),
+    ("update_status", {"lot_id": "LOT-00044", "status": "RELEASED"}, True),
+    ("update_status", {"lot_id": "LOT-00044", "status": "SHIPPED"}, False),
+])
+def test_only_well_formed_payloads_become_pending_approvals(action, payload, ok):
+    s = StateStore()
+    h = ToolExecutionHarness(s.specs())
+    call = h.call("submit_transaction", {"ctx": ctx(), "action": action, "payload": payload, "justification": "x"},
+                  caller_tier="TIER_2_COMPUTE")
+    if ok:
+        asyncio.run(call)
+        assert s.pending("tenant_acme")[0]["payload"]["lot_id"] == "LOT-00044"
+    else:
+        with pytest.raises(HarnessError):
+            asyncio.run(call)
+        assert s.pending("tenant_acme") == []
+
+
+def test_restart_frees_a_hung_pool_and_ignores_the_late_release():
+    release, b = threading.Event(), Bulkhead("rag", 1, acquire_timeout_s=0.02)
+
+    async def go():
+        stuck = asyncio.create_task(b.run(release.wait, 5))
+        await asyncio.sleep(0.05)
+        with pytest.raises(HarnessError):
+            await b.run(lambda: 1)
+        b.restart()
+        assert await b.run(lambda: 2) == 2
+        release.set()
+        await stuck
+    asyncio.run(go())
+    assert b.in_flight == 0
+
+
+def test_react_steps_reach_the_audit_log_but_not_the_response():
+    s = StateStore()
+    s.upsert_lot("tenant_acme", "LOT-00044", "HOLD")
+    o = orch(s, Script(ToolAction("lookup_lot", {"lot_id": "LOT-00044"}, "look it up"),
+                       FinalAnswer("LOT-00044 is RELEASED by Dana.", "answer")))
+    r = handle(o, req("What is the status of LOT-00044?"))
+    event = next(e for e in s.audit_events("tenant_acme") if e["type"] == "agent.query")
+    assert r["status"] == "HALTED" and "steps" not in r
+    look, final = event["steps"]
+    assert (look["thought"], look["tool"]) == ("look it up", "lookup_lot") and "HOLD" in look["outcome"]
+    assert final["outcome"] == "vetoed" and "Dana" not in json.dumps(event)  # the vetoed draft is not stored

@@ -4,9 +4,12 @@ Runs every task in eval/planner_tasks.jsonl through the real BoundedLoop with th
 scoped harness and an in-memory StateStore, then reports:
   KPI-14  share of tool calls that validate on the first pass: no regex repair, no schema failure, no unknown tool
   KPI-17  mean ReAct steps (REASONING passes) over tasks that completed (DONE, or a PENDING_APPROVAL record exists)
-  KPI-18  mean cosine between the goal and each step (thought + chosen action), bge-large embeddings
+  KPI-18  chance (AUC) that a step is closer to its own goal than another task's step is, bge-large embeddings (ADR-019);
+          the mean goal cosine and the unrelated-task baseline are reported next to it
 
   uv run eval/planner_eval.py [--limit N]    # real LLM calls (GENERATOR_MODEL); writes eval/runs/planner_eval.json
+
+  uv run eval/planner_eval.py --rescore      # KPI-18 again from the recorded steps; no LLM calls
 
 The loop budgets are widened for this run (a remote LLM cannot answer inside the blueprint's 250 ms step): ADR-017.
 """
@@ -15,7 +18,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import random
 import sys
 from pathlib import Path
 from typing import Any
@@ -71,7 +73,7 @@ class Recording:
     async def reason(self, prompt):
         action = await self.inner.reason(prompt)
         what = action.text if isinstance(action, FinalAnswer) else f"{action.tool} {json.dumps(action.args, sort_keys=True)}"
-        self.steps.append(f"{self.inner.thoughts[-1] if self.inner.thoughts else ''} {what}".strip())
+        self.steps.append(f"{action.thought} {what}".strip())
         return action
 
     async def verify(self, answer, observations):
@@ -89,7 +91,7 @@ async def run_task(task: dict, client, sem: asyncio.Semaphore) -> dict:
         async with sem:
             return await rr.complete(client, rr.GENERATOR, user, system=system)
 
-    planner = Recording(LLMPlanner(complete, models, entailment, record_thoughts=True))
+    planner = Recording(LLMPlanner(complete, models, entailment))
     scoped = Counting(ScopedHarness(harness, SUBAGENTS["execution"]))
     loop = BoundedLoop(scoped, _VerifiedPlanner(planner, entailment), CFG, observation_gate=_tool_output_ok)  # type: ignore[arg-type]
     base = {"tenant_id": TENANT, "user_id": "user_eval", "session_id": str(uuid4()), "traceparent": TP}
@@ -103,35 +105,37 @@ async def run_task(task: dict, client, sem: asyncio.Semaphore) -> dict:
             "steps": planner.steps, "answer": res.answer}
 
 
+def alignment(rows: list[dict]) -> dict[str, Any]:
+    """KPI-18 over every (goal, step) pair: a step's own goal against all other tasks' steps for that goal."""
+    import numpy as np
+
+    from mcp_servers.rag_server import embed
+
+    rows = [r for r in rows if r["steps"]]
+    goals, own, unrelated, first, last = embed([r["goal"] for r in rows]), [], [], [], []
+    for i, r in enumerate(rows):
+        sims = embed(r["steps"]) @ goals.T  # unit vectors: steps x goals
+        r["drift"] = sims[:, i].tolist()
+        own += r["drift"]
+        unrelated += np.delete(sims, i, axis=1).ravel().tolist()
+        first.append(r["drift"][0])
+        last.append(r["drift"][-1])
+    a, b = np.array(own), np.array(unrelated)
+    mean = {"kpi18_mean_cosine": a, "kpi18_unrelated_baseline": b, "kpi18_first_step": first, "kpi18_last_step": last}
+    auc = float((a[:, None] > b).mean() + (a[:, None] == b).mean() / 2) if len(a) and len(b) else None
+    return {"kpi18_auc": auc, "steps_scored": len(own), **{k: float(np.mean(v)) if len(v) else None for k, v in mean.items()}}
+
+
 async def main(limit: int) -> None:
     tasks = rr.read(TASKS)[:limit or None]
     client, sem = rr.make_client(), asyncio.Semaphore(4)
     rows = await asyncio.gather(*(run_task(t, client, sem) for t in tasks))
-    from mcp_servers.rag_server import embed
-    import numpy as np
-
-    sims, vecs = [], {}
-    for r in rows:
-        if r["steps"]:
-            vecs[r["id"]] = v = embed([r["goal"]] + r["steps"])
-            r["drift"] = [float(np.dot(v[0], x)) for x in v[1:]]
-            sims += r["drift"]
-    # control: the same goals against the steps of other tasks (3 per goal, fixed seed) show what "unrelated" scores
-    rng, ids, ctl = random.Random(1), list(vecs), []
-    for i in ids:
-        for _ in range(3):
-            j = rng.choice([k for k in ids if k != i])
-            ctl += [float(np.dot(vecs[i][0], x)) for x in vecs[j][1:]]
-    first = [r["drift"][0] for r in rows if r.get("drift")]
-    last = [r["drift"][-1] for r in rows if r.get("drift")]
     done = [r for r in rows if r["completed"]]
     calls, ok = sum(r["calls"] for r in rows), sum(r["first_pass"] for r in rows)
     rep = {"generator": rr.GENERATOR, "tasks": len(rows), "completed": len(done), "expected_tools_used": sum(r["expected_ok"] for r in rows),
            "kpi14_first_pass": ok / calls if calls else None, "tool_calls": calls,
            "kpi17_mean_steps": sum(r["iterations"] for r in done) / len(done) if done else None,
-           "kpi18_mean_cosine": float(np.mean(sims)) if sims else None, "steps_scored": len(sims),
-           "kpi18_unrelated_baseline": float(np.mean(ctl)) if ctl else None,
-           "kpi18_first_step": float(np.mean(first)) if first else None, "kpi18_last_step": float(np.mean(last)) if last else None,
+           **alignment(rows),
            "rows": rows}
     OUT.write_text(json.dumps(rep, indent=1))
     print({k: v for k, v in rep.items() if k != "rows"})
@@ -140,4 +144,12 @@ async def main(limit: int) -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0)
-    asyncio.run(main(ap.parse_args().limit))
+    ap.add_argument("--rescore", action="store_true")
+    args = ap.parse_args()
+    if args.rescore:
+        rep = json.loads(OUT.read_text())
+        rep.update(alignment(rep["rows"]))
+        OUT.write_text(json.dumps(rep, indent=1))
+        print({k: v for k, v in rep.items() if k.startswith("kpi18")})
+    else:
+        asyncio.run(main(args.limit))

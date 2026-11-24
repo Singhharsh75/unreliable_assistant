@@ -6,7 +6,8 @@
 POST /api/v1/agent/query         JSON response body (§1.2.6).
 POST /api/v1/agent/query/stream  text/event-stream: `segment` events (each one verified before it is sent), then one
                                  `final` event with the full response body.
-GET  /healthz, GET /metrics      readiness; p50/p95 of LLM TTFT (KPI-25) and first-verified-token latency (KPI-31..33).
+GET  /healthz, GET /metrics      readiness; p50/p95 of LLM TTFT (KPI-25), first-verified-token latency (KPI-31..33), open
+                                 incidents. INCIDENT_RESPONDER=0 turns the runbooks off (measurement runs).
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ import statistics
 import time
 from collections import deque
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -31,7 +32,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from contracts.models import TENANT_RE, USER_RE, Chunk, GraphSubgraphIn, HybridRetrieveIn
 from context.cache import AnswerCache
-from harness import LoopConfig, ToolExecutionHarness, ToolSpec, default_bulkheads
+from harness import LoopConfig, ToolExecutionHarness, ToolSpec, default_bulkheads, plugins
+from observability.incidents import IncidentResponder, RuntimeConfig, Thresholds, WindowedMetrics
 from observability.tracing import setup_tracing
 from triage import ClaudeGenerator, Orchestrator
 
@@ -40,6 +42,7 @@ log = logging.getLogger("api")
 # shortcut: every API caller gets TIER_2_COMPUTE (may submit HITL requests, never mutate); map roles from the
 # gateway's authN claims when the gateway lands.
 CALLER_TIER = "TIER_2_COMPUTE"
+INCIDENT_CHECK_S = 5.0
 _TRACEPARENT = re.compile(r"^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$")
 
 
@@ -78,23 +81,33 @@ class _Latency(SpanProcessor):
             self.ttft.append(float(v))
 
 
-def build_orchestrator() -> Orchestrator:
-    """Composition root: in-process retriever and state store behind the tool harness and its bulkheads."""
+def build() -> tuple[Orchestrator, IncidentResponder]:
+    """Composition root: in-process retriever and state store behind the tool harness and its bulkheads, and the incident
+    responder that turns the RuntimeConfig the orchestrator reads."""
     from harness.manifest import verify as verify_manifest
     from mcp_servers.graphify import GraphVault
-    from mcp_servers.rag_server import Retriever
+    from mcp_servers.rag_server import INDEX, Retriever
     from mcp_servers.state_store import StateStore
 
     db = os.getenv("STATE_DB", str(ROOT / "var" / "state.db"))  # approvals and the audit chain survive restarts
     if db != ":memory:":
         Path(db).parent.mkdir(parents=True, exist_ok=True)
-    bulkheads = default_bulkheads()
-    retriever, vault = Retriever(), GraphVault()
+    bulkheads, config, conf = default_bulkheads(), RuntimeConfig(), plugins.load()
+    # the replica is its own copy of the index, from RAG_REPLICA_INDEX when there is one on another disk
+    primary, replica = Retriever(), Retriever(Path(os.getenv("RAG_REPLICA_INDEX", INDEX)))
+    vault = GraphVault()
+
+    def rag_route() -> tuple[str, Any]:
+        return ("rag_replica", replica.retrieve) if config.rag_index == "replica" else ("rag", primary.retrieve)
+
     servers = {
-        "mcp-hybrid-rag": [ToolSpec("hybrid_retrieve", HybridRetrieveIn, "TIER_1_READ", retriever.retrieve, pool="rag")],
+        "mcp-hybrid-rag": [ToolSpec("hybrid_retrieve", HybridRetrieveIn, "TIER_1_READ", primary.retrieve, pool="rag",
+                                    route=rag_route)],
         "mcp-graphify-vault": [ToolSpec("graph_subgraph", GraphSubgraphIn, "TIER_1_READ", vault.subgraph)],
         "mcp-state-store": StateStore(db).specs(),
     }
+    if set(conf.mcpServers) != set(servers):
+        raise RuntimeError(f"mcp_config.json lists {sorted(conf.mcpServers)}, the API runs {sorted(servers)}")
     for server, specs in servers.items():  # refuse to start on an unsigned or drifted tool contract
         verify_manifest(server, specs)
     harness = ToolExecutionHarness([s for specs in servers.values() for s in specs], bulkheads=bulkheads)
@@ -108,9 +121,22 @@ def build_orchestrator() -> Orchestrator:
     planner = None if os.getenv("LLM_STUB") else build_planner(servers["mcp-state-store"])
     # NLI verifier on every path (ADR-013, ADR-016: KPI-24 is measured on this configuration). The loop's step budgets are
     # widened for a remote LLM planner (ADR-017): the blueprint's 250 ms step cannot hold, and the 30 s request timeout wraps it.
-    cfg = LoopConfig(per_step_timeout_s=2.0, total_loop_budget_s=25.0, llm_step_timeout_s=10.0)
-    return Orchestrator(harness, generator, planner, llm_pool=bulkheads["llm"], cache=AnswerCache(), entail=entailment,
-                        loop_config=cfg)
+    breaker, ragas, otel = (conf.get(n) for n in ("circuit_breaker", "ragas_auditor", "otel_exporter"))
+    cfg = LoopConfig(per_step_timeout_s=2.0, total_loop_budget_s=25.0, llm_step_timeout_s=10.0,
+                     breaker_threshold=breaker.max_identical_calls)
+    if otel and otel.enabled and otel.endpoint:  # read by setup_tracing
+        os.environ.setdefault("OTEL_EXPORTER_OTLP_ENDPOINT", otel.endpoint)
+    auditor, thresholds = None, Thresholds()
+    if ragas and ragas.enabled:  # LLM spend: one judge run per sampled answer
+        from eval.ragas_auditor import RagasAuditor, RagasScorer
+
+        auditor, thresholds = RagasAuditor(RagasScorer()), Thresholds(faithfulness_floor=ragas.min_faithfulness)
+    cache = AnswerCache()
+    orchestrator = Orchestrator(harness, generator, planner, llm_pool=bulkheads["llm"], cache=cache, entail=entailment,
+                                loop_config=cfg, config=config, auditor=auditor)
+    return orchestrator, IncidentResponder(WindowedMetrics(), config, auditor=auditor, bulkheads=bulkheads, cache=cache,
+                                           workers={"rag": primary.restart, "rag_replica": replica.restart},
+                                           thresholds=thresholds)
 
 
 def build_planner(state_specs: list[ToolSpec]) -> Any:
@@ -136,10 +162,32 @@ first_token: deque[float] = deque(maxlen=10_000)  # receipt -> first verified se
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    setup_tracing(latency)
+    responder: IncidentResponder | None = None
     if not hasattr(app.state, "orchestrator"):  # tests inject their own
-        app.state.orchestrator = build_orchestrator()
+        app.state.orchestrator, responder = build()
+    app.state.responder = responder
+    setup_tracing(latency, *([responder.metrics] if responder else []))
+    auditor, watcher = app.state.orchestrator.auditor, None
+    if auditor is not None:
+        auditor.start()
+    if responder is not None and os.getenv("INCIDENT_RESPONDER", "1") != "0":
+        watcher = asyncio.create_task(_watch(responder))
     yield
+    if watcher is not None:
+        watcher.cancel()
+        with suppress(asyncio.CancelledError):
+            await watcher
+    if auditor is not None:
+        await auditor.stop()
+
+
+async def _watch(responder: IncidentResponder) -> None:
+    while True:
+        await asyncio.sleep(INCIDENT_CHECK_S)
+        try:
+            responder.evaluate()
+        except Exception:  # a failing rule must not end incident detection
+            log.exception("incident evaluation failed")
 
 
 app = FastAPI(title="unreliable-assistant", lifespan=lifespan)
@@ -210,7 +258,8 @@ def _pcts(xs: list[float]) -> dict[str, float | int | None]:
 
 @app.get("/metrics")
 async def metrics() -> dict:
-    cache = app.state.orchestrator.cache
+    cache, responder = app.state.orchestrator.cache, app.state.responder
     return {"generator": type(app.state.orchestrator.generator).__name__,  # StubGenerator TTFT is not Claude's
             "cache": {"hits": cache.hits, "misses": cache.misses, "hit_ratio": cache.hit_ratio} if cache else None,
+            "incidents": {n: i.trigger for n, i in responder.active.items()} if responder else {},
             "llm_ttft_ms": _pcts(list(latency.ttft)), "first_token_ms": _pcts(list(first_token))}

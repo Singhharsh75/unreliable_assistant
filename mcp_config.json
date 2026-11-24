@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mcp-hybrid-rag": {"transport": "stdio", "command": "uv", "args": ["run", "mcp_servers/rag_server.py"], "runtime": "in-process"},
+    "mcp-graphify-vault": {"runtime": "in-process"},
+    "mcp-state-store": {"runtime": "in-process"}
+  },
+  "plugins": [
+    {"name": "pii_redactor", "stage": "PRE_EXECUTION", "priority": 10, "fail_closed": true},
+    {"name": "injection_shield", "stage": "PRE_EXECUTION", "priority": 20, "fail_closed": true},
+    {"name": "circuit_breaker", "stage": "TOOL_DISPATCH", "priority": 10, "max_identical_calls": 2},
+    {"name": "ragas_auditor", "stage": "POST_EXECUTION", "priority": 10, "enabled": false, "min_faithfulness": 0.90},
+    {"name": "otel_exporter", "stage": "ALL_SPANS", "endpoint": null}
+  ]
+}

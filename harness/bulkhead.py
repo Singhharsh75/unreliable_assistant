@@ -19,7 +19,7 @@ from typing import Any
 
 from harness.errors import CIRCUIT_OPEN, INTERNAL_ERROR, UPSTREAM_TIMEOUT, HarnessError
 
-POOL_SIZES = {"rag": 64, "db": 128, "llm": 256}
+POOL_SIZES = {"rag": 64, "rag_replica": 64, "db": 128, "llm": 256}
 # Only infrastructure failures count toward tripping. A client error (unknown lot, bad schema, tenant violation)
 # says nothing about pool health, and counting it would let one tenant's bad requests open the pool for everyone.
 _INFRA_CODES = frozenset({UPSTREAM_TIMEOUT, INTERNAL_ERROR, CIRCUIT_OPEN})
@@ -35,6 +35,7 @@ class Bulkhead:
         # even after the caller timed out, and the bulkhead works across event loops.
         self._slots = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=size, thread_name_prefix=f"bulkhead-{name}")
+        self._generation = 0
         self.in_flight = self.failures = self.rejected = 0
         self._open_until = 0.0
 
@@ -48,16 +49,26 @@ class Bulkhead:
     def reset(self) -> None:
         self._open_until, self.failures = 0.0, 0
 
-    def _try_acquire(self) -> bool:
+    def restart(self) -> None:
+        """Fresh worker threads and slots; hung threads are abandoned and their late release is ignored."""
+        with self._slots:
+            old = self._executor
+            self._executor = ThreadPoolExecutor(max_workers=self.size, thread_name_prefix=f"bulkhead-{self.name}")
+            self._generation += 1
+            self.in_flight = 0
+        old.shutdown(wait=False)
+
+    def _try_acquire(self) -> tuple[int, ThreadPoolExecutor] | None:
         with self._slots:
             if self.in_flight >= self.size:
-                return False
+                return None
             self.in_flight += 1
-            return True
+            return self._generation, self._executor
 
-    def _release(self, *_: Any) -> None:
+    def _release(self, generation: int) -> None:
         with self._slots:
-            self.in_flight -= 1
+            if generation == self._generation:
+                self.in_flight -= 1
 
     def _failed(self, exc: BaseException) -> None:
         if isinstance(exc, HarnessError) and exc.code not in _INFRA_CODES:
@@ -71,22 +82,27 @@ class Bulkhead:
             self.rejected += 1
             raise HarnessError(CIRCUIT_OPEN, f"{self.name} bulkhead is open; try again later")
         deadline = self.clock() + self.acquire_timeout_s
-        while not self._try_acquire():
+        while (slot := self._try_acquire()) is None:
             if self.clock() >= deadline:
                 self.rejected += 1
                 raise HarnessError(UPSTREAM_TIMEOUT, f"{self.name} pool is saturated ({self.size} in flight)")
             await asyncio.sleep(_POLL_S)
+        generation, executor = slot
         try:
             if inspect.iscoroutinefunction(fn):
                 try:
                     value = await fn(*args)
                 finally:
-                    self._release()
+                    self._release(generation)
             else:
                 # copy_context: the worker thread keeps the caller's OTel span. The slot is freed by the thread's
                 # own completion, so a hung handler keeps holding it after the caller gives up.
-                cf = self._executor.submit(contextvars.copy_context().run, fn, *args)
-                cf.add_done_callback(self._release)
+                try:
+                    cf = executor.submit(contextvars.copy_context().run, fn, *args)
+                except RuntimeError as e:  # restart() shut this executor down between the acquire and the submit
+                    self._release(generation)
+                    raise HarnessError(UPSTREAM_TIMEOUT, f"{self.name} worker is restarting") from e
+                cf.add_done_callback(lambda _: self._release(generation))
                 value = await asyncio.wrap_future(cf)
         except (Exception, asyncio.CancelledError) as e:  # a caller timeout (cancel) counts as a failure too
             self._failed(e)

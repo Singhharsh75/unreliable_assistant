@@ -160,6 +160,9 @@ class Orchestrator:
         }
         draft_faithfulness: float | None = None  # set only when a draft was vetoed
         cache_hit = False
+        steps: list[dict[str, Any]] = []
+        cfg = self.config
+        cache_user = req["user_id"] if cfg.cache_key_scope == "tenant_user" else None
         try:
             async with asyncio.timeout(self.config.request_timeout_s):  # a timeout lands in the except below: HALTED
                 if blocked:
@@ -167,22 +170,24 @@ class Orchestrator:
                 elif (canned := canned_response(tri.route)) is not None:
                     out["answer"] = canned
                 elif tri.route == "HYBRID_RAG":
-                    hit = self.cache.get(req["tenant_id"], query) if self.cache else None
+                    hit = (self.cache.get(req["tenant_id"], query, user_id=cache_user, aggressive=cfg.cache_aggressive)
+                           if self.cache else None)
                     if hit is not None:  # still audited below; a streamed hit goes out as the final event only
                         out.update({k: hit[k] for k in ("answer", "citations", "abstained", "status", "faithfulness")})
                         cache_hit = True
                     else:
                         draft_faithfulness = await self._rag(query, base, caller_tier, out, on_segment)
                         if self.cache and draft_faithfulness is None:  # vetoed or partial answers are never cached
-                            self.cache.put(req["tenant_id"], query, out)
+                            self.cache.put(req["tenant_id"], query, out, user_id=cache_user, ttl_s=cfg.cache_ttl_s,
+                                           jitter_s=cfg.cache_ttl_jitter_s)
                 else:
-                    await self._execute(query, base, caller_tier, out)
+                    await self._execute(query, base, caller_tier, out, steps)
         except Exception as e:  # upstream failure: no draft is released, and the request is still audited
             log.exception("route %s failed", tri.route)
             name = e.name if isinstance(e, HarnessError) else type(e).__name__
             out.update(status="HALTED", answer=f"I could not complete this request ({name}).", citations=[],
                        faithfulness=None)
-        await self._audit(base, tri, out, draft_faithfulness, cache_hit)
+        await self._audit(base, tri, out, draft_faithfulness, cache_hit, steps)
         return out
 
     async def _rag(self, query: str, base: dict[str, Any], tier: Tier, out: dict[str, Any],
@@ -309,12 +314,14 @@ class Orchestrator:
             await on_segment(hold)
         return draft, released, True
 
-    async def _execute(self, query: str, base: dict[str, Any], tier: Tier, out: dict[str, Any]) -> None:
+    async def _execute(self, query: str, base: dict[str, Any], tier: Tier, out: dict[str, Any],
+                       steps: list[dict[str, Any]]) -> None:
         if self.planner is None:
             raise RuntimeError("TRANSACTION_EXEC needs a planner")
         loop = BoundedLoop(self.execution, _VerifiedPlanner(self.planner, self.entail), self.loop_config, memory=self.memory,  # type: ignore[arg-type]
                            observation_gate=_tool_output_ok)
         res = await loop.run(query, base_ctx=base, caller_tier=tier)
+        steps += res.steps
         pending = next((o["result"] for o in res.observations
                         if o["tool"] == "submit_transaction" and o.get("ok")
                         and isinstance(o["result"], dict) and o["result"].get("status") == "PENDING_APPROVAL"), None)
@@ -330,7 +337,8 @@ class Orchestrator:
                    else f"I could not complete this request ({res.halt_reason}).")
 
     async def _audit(self, base: dict[str, Any], tri: TriageResult, out: dict[str, Any],
-                     draft_faithfulness: float | None, cache_hit: bool = False) -> None:
+                     draft_faithfulness: float | None, cache_hit: bool = False,
+                     steps: list[dict[str, Any]] | None = None) -> None:
         event = {
             "type": "agent.query", "route": tri.route, "intent": tri.intent, "risk_tier": tri.risk_tier,
             "blocked": tri.reason if tri.intent == "blocked" else None,  # PII_BLOCKED | INJECTION_BLOCKED
@@ -338,6 +346,7 @@ class Orchestrator:
             "status": out["status"], "abstained": out["abstained"],
             "vetoed": draft_faithfulness is not None, "draft_faithfulness": draft_faithfulness,
             "faithfulness": out["faithfulness"], "citations": out["citations"], "approval_id": out["approval_id"],
+            "steps": steps or [],  # ReAct trace (TRANSACTION_EXEC only), shown in workbench Tab 1
             "answer_sha256": hashlib.sha256((out["answer"] or "").encode()).hexdigest(),
         }
         try:

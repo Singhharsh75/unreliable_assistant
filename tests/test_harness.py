@@ -235,3 +235,36 @@ def test_spec_requires_ctx_field():
 
     with pytest.raises(ValueError):
         ToolSpec("x", NoCtx, "TIER_1_READ", SpyHandler())
+
+
+# --- bounded idempotency cache ---------------------------------------------------
+
+def test_idempotency_cache_is_bounded_and_evicts_the_least_recently_used(monkeypatch):
+    from harness import tool_harness
+
+    monkeypatch.setattr(tool_harness, "MAX_IDEMPOTENCY_RESULTS", 2)
+    spy = SpyHandler()
+    h = ToolExecutionHarness([ToolSpec("lookup_lot", LotIn, "TIER_1_READ", spy)])
+    a, b, c = ctx(), ctx(), ctx()
+
+    def call(x):
+        return run(h.call("lookup_lot", {"ctx": x, "lot_id": "LOT-00001"}, caller_tier="TIER_1_READ")).replayed
+    assert [call(a), call(b), call(a), call(c)] == [False, False, True, False]  # c evicts b: a was used after it
+    assert call(a) and not call(b) and len(h._results) == 2 and h._locks == {}
+
+
+def test_concurrent_retries_run_once_and_leave_no_lock():
+    calls = []
+
+    async def slow(m):
+        calls.append(1)
+        await asyncio.sleep(0.01)
+        return "ok"
+
+    h, c = ToolExecutionHarness([ToolSpec("lookup_lot", LotIn, "TIER_1_READ", slow)]), ctx()
+
+    async def go():
+        return await asyncio.gather(*[h.call("lookup_lot", {"ctx": c, "lot_id": "LOT-00001"}, caller_tier="TIER_1_READ")
+                                      for _ in range(5)])
+    out = run(go())
+    assert len(calls) == 1 and sorted(r.replayed for r in out) == [False] + [True] * 4 and h._locks == {}

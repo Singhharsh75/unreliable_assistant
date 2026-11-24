@@ -50,7 +50,6 @@ audit = logging.getLogger("rag.audit")
 _SPAN = {"dense": "biencoder"}  # design.md §1.4 span name for the dense stage
 
 _stem = PorterStemmer().stem
-POOL = ThreadPoolExecutor(max_workers=2)  # BM25 and dense run in parallel
 
 
 def bm25_tokens(text: str) -> list[str]:
@@ -172,7 +171,15 @@ class Retriever:
         from guardrails.review import ReviewQueue
 
         self.review = ReviewQueue()
+        self.restart()
         bi_encoder(), cross_encoder()  # load models before the first request
+
+    def restart(self) -> None:
+        """Fresh stage threads (MCP-hang runbook): a stage stuck on the old ones no longer blocks new queries."""
+        old = getattr(self, "pool", None)
+        self.pool = ThreadPoolExecutor(max_workers=2)  # BM25 and dense run in parallel
+        if old:
+            old.shutdown(wait=False)
 
     def _allowed(self, tenant: str | None, domain: str | None) -> np.ndarray:
         """Boolean mask over chunks the caller may see. Applied before top-k so private chunks are never crowded out."""
@@ -198,7 +205,7 @@ class Retriever:
     def retrieve(self, req: HybridRetrieveIn) -> HybridRetrieveOut:
         allowed = self._allowed(req.ctx.tenant_id, req.domain)
         lat = {}
-        parent = parent_context(req.ctx.traceparent)  # captured here: POOL threads do not inherit the context
+        parent = parent_context(req.ctx.traceparent)  # captured here: pool threads do not inherit the context
 
         def timed(name, fn, *args):
             with span(f"mcp.rag.{_SPAN.get(name, name)}", context=parent, tenant_id=req.ctx.tenant_id):
@@ -207,8 +214,9 @@ class Retriever:
                 lat[name] = (time.perf_counter() - t0) * 1000
             return res
 
-        f_sparse = POOL.submit(timed, "bm25", self._bm25, req.query, req.bm25_top_k, allowed)
-        f_dense = POOL.submit(timed, "dense", self._dense, req.query, req.dense_top_k, allowed)
+        pool = self.pool
+        f_sparse = pool.submit(timed, "bm25", self._bm25, req.query, req.bm25_top_k, allowed)
+        f_dense = pool.submit(timed, "dense", self._dense, req.query, req.dense_top_k, allowed)
         sparse, dense = dict(f_sparse.result()), dict(f_dense.result())
 
         fused = timed("rrf", rrf, [list(sparse), list(dense)], req.rrf_k, RRF_POOL)

@@ -134,15 +134,15 @@ class StateStore:
 
     def submit_transaction(self, m: SubmitTransactionIn) -> dict[str, Any]:
         """The only Tier 3 entry point. Writes PENDING_APPROVAL; nothing is executed here."""
-        approval_id = f"apr_{uuid4().hex}"
+        approval_id, payload = f"apr_{uuid4().hex}", m.payload.model_dump()
         with self._lock:
             self._db.execute(
                 "INSERT INTO approvals (approval_id, tenant_id, user_id, session_id, action, payload, justification,"
                 " status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING_APPROVAL', ?)",
                 (approval_id, m.ctx.tenant_id, m.ctx.user_id, str(m.ctx.session_id), m.action,
-                 json.dumps(m.payload, sort_keys=True), m.justification, self.clock().isoformat()))
+                 json.dumps(payload, sort_keys=True), m.justification, self.clock().isoformat()))
         self._audit(m.ctx.tenant_id, {"type": "hitl.requested", "approval_id": approval_id, "user_id": m.ctx.user_id,
-                                      "action": m.action, "payload": m.payload})
+                                      "action": m.action, "payload": payload})
         return {"approval_id": approval_id, "status": "PENDING_APPROVAL"}
 
     def get_approval(self, m: GetApprovalIn) -> dict[str, Any]:

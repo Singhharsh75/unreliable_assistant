@@ -159,7 +159,7 @@ class GraphSubgraphOut(BaseModel):
 | `get_session_facts` | 1 | `{ctx}` → `{facts: list[SessionFact]}` |
 | `put_session_fact` | 2 | `{ctx, fact: SessionFact}` → `{fact_id}` (verified facts only) |
 | `lookup_lot` | 1 | `{ctx, lot_id: LOT_RE}` → `{lot_id, status, protocol_ref, updated_at}` |
-| `submit_transaction` | **3** | `{ctx, action: Literal[...], payload: dict, justification: str}` → `{approval_id, status: "PENDING_APPROVAL"}` |
+| `submit_transaction` | **3** | `{ctx, action: Literal[...], payload: LotPayload \| RecordPayload \| StatusPayload, justification: str}` → `{approval_id, status: "PENDING_APPROVAL"}` |
 | `get_approval` | 1 | `{ctx, approval_id}` → `{status: PENDING_APPROVAL \| APPROVED \| REJECTED, reviewer_id?, decided_at?}` |
 | `append_audit` | internal | `{ctx, event: dict}` → `{seq, hash}` where `hash = SHA256(prev_hash + canonical(event))` |
 
@@ -170,6 +170,8 @@ class SessionFact(BaseModel):
     value: str = Field(max_length=512)
     source_chunk_hash: str | None = Field(default=None, pattern=CHUNK_RE)
 ```
+
+The payload shape depends on the action (ADR-018): `release`, `quarantine`, `hold` and `reject` take `{lot_id}`; `open_deviation` and `open_capa` take `{lot_id, description}`; `update_status` takes `{lot_id, status}`. Extra fields are refused.
 
 `submit_transaction` never executes the action. It only writes `PENDING_APPROVAL`. The action runs after a Reviewer approves, through a separate worker path.
 
@@ -210,7 +212,7 @@ class SessionFact(BaseModel):
 
 ```mermaid
 flowchart LR
-  C[Client / k6 / JMeter] --> GW[API Gateway<br/>NGINX/Envoy · authN · rate limit]
+  C[Client / k6] --> GW[API Gateway<br/>NGINX/Envoy · authN · rate limit]
   GW --> API[FastAPI workers<br/>stateless · Uvicorn async]
 
   subgraph API_PROC[Agent runtime]
@@ -307,7 +309,7 @@ ReAct state machine: `INIT → TRIAGE → REASONING → TOOL_CALL → OBSERVATIO
 
 ## 1.5 KPI & SLA Gate Matrix (36 KPIs)
 
-Every KPI is a hard release gate. **Fail = block release.** All are measured in CI and shown in Workbench Tab 6.
+Every KPI is a hard release gate. **Fail = block release.** All are measured by `uv run eval/kpis.py` and shown in Workbench Tab 6.
 
 | ID | Stage | KPI | Pass threshold | Source |
 |---|---|---|---|---|
@@ -328,7 +330,7 @@ Every KPI is a hard release gate. **Fail = block release.** All are measured in 
 | KPI-15 | Agent & Loop | Auto-repair success on malformed args | ≥ 90.0% | Harness metrics |
 | KPI-16 | Agent & Loop | Infinite-loop escape rate | 100.0% | Chaos loop suite |
 | KPI-17 | Agent & Loop | Mean ReAct steps per completed task | ≤ 2.2 | OTel trace count |
-| KPI-18 | Agent & Loop | Context drift (goal cosine alignment) | ≥ 0.85 | Embedding drift audit |
+| KPI-18 | Agent & Loop | Context drift (goal alignment AUC vs unrelated tasks, ADR-019) | ≥ 0.85 | Embedding drift audit |
 | KPI-19 | Agent & Loop | Tier 3 HITL enforcement | 100.0% | Audit log integrity |
 | KPI-20 | Generation | RAGAS faithfulness | ≥ 0.92 | Post-hook RAGAS |
 | KPI-21 | Generation | RAGAS answer relevancy | ≥ 0.90 | Post-hook RAGAS |
@@ -341,11 +343,11 @@ Every KPI is a hard release gate. **Fail = block release.** All are measured in 
 | KPI-28 | Token & Graphify | Cross-tenant cache isolation | 100% (0 leaks) | Concurrency probe |
 | KPI-29 | Token & Graphify | Cost per 1,000 queries | ≤ $0.45 | OTel token cost |
 | KPI-30 | Token & Graphify | MCP JSON-RPC serialization overhead p95 | ≤ 4 ms | MCP client timer |
-| KPI-31 | Scale & Load | E2E latency p50 @ 50K VUs | ≤ 240 ms | k6 + JMeter |
-| KPI-32 | Scale & Load | E2E latency p95 @ 50K VUs | ≤ 450 ms | k6 + JMeter |
-| KPI-33 | Scale & Load | E2E latency p99 @ 50K VUs | ≤ 590 ms | k6 + JMeter |
-| KPI-34 | Scale & Load | HTTP 5xx rate @ 50K VUs | ≤ 0.05% | k6 / JMeter |
-| KPI-35 | Scale & Load | Sustained throughput | ≥ 8,500 RPS | k6 / JMeter |
+| KPI-31 | Scale & Load | E2E latency p50 @ 50K VUs | ≤ 240 ms | k6 |
+| KPI-32 | Scale & Load | E2E latency p95 @ 50K VUs | ≤ 450 ms | k6 |
+| KPI-33 | Scale & Load | E2E latency p99 @ 50K VUs | ≤ 590 ms | k6 |
+| KPI-34 | Scale & Load | HTTP 5xx rate @ 50K VUs | ≤ 0.05% | k6 |
+| KPI-35 | Scale & Load | Sustained throughput | ≥ 8,500 RPS | k6 |
 | KPI-36 | Scale & Load | RSS growth over 1 h soak | ≤ 3.0% | Prometheus node exporter |
 
 **Gate policy**
@@ -609,3 +611,31 @@ The blueprint asks for 12 rows; this draft has 14. Rows 13–14 are additions an
   - KPI-18 goal cosine 0.71 (target 0.85, FAIL). The metric is poorly calibrated: steps from unrelated tasks score 0.60 against a goal, and the first and last steps of a run score 0.67 and 0.71, so alignment does not decay. A cosine target of 0.85 between a short goal and a step description is not reachable with bge-large. The target should be redefined, for example relative to the unrelated baseline.
 - **Known limits:** derived comparisons ("both lots have the same status") are vetoed by the verifier, as in ADR-016; the task set is 30 hand-written tasks, not production traffic; the planner is a single-model eval (no second family).
 
+### ADR-018 — Payload schemas, bounded idempotency, ReAct trace, plugin registry, working runbooks (amends ADR-003, ADR-012, ADR-014)
+- **Payload schemas:** `SubmitTransactionIn.payload` is a strict per-action model (§1.2.4), which closes the ADR-014 fuzzing finding. Descriptions refuse control and bidirectional-override characters. `mcp-state-store` was re-signed for the changed contract, with the owner's approval. The planner's tool catalog now includes the referenced schemas; before this, `put_session_fact` showed it an unresolved reference.
+- **Idempotency:** the result cache is an LRU of 10,000 entries and a key's lock is dropped with its last user. A key evicted after 10,000 later calls would run again on a retry, and one tenant can evict another's keys (the results themselves stay tenant-scoped).
+- **ReAct trace:** every `TRANSACTION_EXEC` audit event carries its steps (thought, tool, arguments, outcome). Final-answer text is not stored, so a vetoed draft is not kept. Workbench Tab 1 reads the trace from the audit log.
+- **Plugins:** `mcp_config.json` and `harness/plugins.py`. Pre-hooks run from the registry in priority order. The loader refuses a config that drops, disables, reorders or opens a guardrail, or loosens the breaker, so the ADR-012 rule (no guardrail toggle) still holds. `ragas_auditor` is wired but disabled: it spends LLM money, and the measured faithfulness of 0.853 would open the hallucination runbook at once. The servers run in-process; only `mcp-hybrid-rag` can also be started over stdio.
+- **Runbooks:** `api/main.py` evaluates the incident rules every 5 s. Nothing ran them before. The latency runbook turns on the aggressive cache and cuts `top_k`; the leak runbook narrows cache keys to the user; the hang runbook fails over to a replica index with its own bulkhead, then restarts the worker threads. `INCIDENT_RESPONDER=0` turns this off for measurement runs.
+- **Deviation from the blueprint:** the latency runbook does not use a cosine ≥ 0.92 match. With bge-large, "with / without QA sign-off" scores 0.943, "can / cannot approve a release" 0.927 and "before / after cleaning validation" 0.959, so a hit could return the opposite answer. The aggressive mode matches the question's word sequence with filler words removed. It catches fewer rewordings ("fast" vs "quickly" misses) and needs no embedding.
+- **Limits:** `resolve()` has no endpoint until operators can be authenticated, so closing an incident needs an API restart. The replica shares the primary's ONNX sessions, so a hang inside ONNX Runtime takes out both. The Redis CPU trigger has no source. On CPU-only hardware the latency and hang runbooks open under normal load.
+
+### ADR-019 — KPI-17 waiver; KPI-18 redefined against unrelated tasks, and waived
+- **KPI-17 decision (owner, 2026-11-24):** keep the read-before-write rule and the task mix. A read is 2 steps and a write is 3 by design. Target stays ≤ 2.2; waived up to 3.0. Measured 2.54.
+- **KPI-18 decision:** the metric is the probability (AUC) that a step is closer to its own goal than another task's step is, over all goal and step pairs (`planner_eval.alignment`). 0.5 is chance. The old mean cosine of 0.71 could not be read without its unrelated baseline of 0.60, and 0.85 was out of reach.
+- **Result:** 0.808. The 0.85 target was fixed before this was measured and is unchanged. The owner waived it down to 0.75, **a gate chosen after seeing the result**. The 30 tasks share lots and wording, so some "unrelated" steps are near-duplicates; that may lower the score but was not tested. The first and last step of a run score 0.68 and 0.71 against the goal, so alignment does not decay.
+- **Open:** re-measure KPI-14, 17 and 18 with a real planner. The recorded runs predate the ADR-018 payload schemas, and the planner now sees a different tool catalog.
+
+### ADR-020 — Waiver of KPI-08 and KPI-09 on CPU-only hardware
+- **Decision:** where ONNX Runtime has no CUDA provider, KPI-08 is waived up to 1,000 ms and KPI-09 up to 2,000 ms, about twice the worst values seen on the M1 dev machine (483 and 1,007 ms). On a GPU host a miss is a FAIL. The targets (25 and 45 ms) are unchanged.
+- **Consequences:** The KPI gate (`eval/kpis.py`) can pass, and a large regression still fails it. The waiver says nothing about production: measure on the deployment hardware before release.
+
+### ADR-021 — KPIs deferred in this environment
+- **Decision:** a new status, DEFERRED, for KPIs that cannot be measured here. KPI-31 to 35 need a distributed 50K-user environment, KPI-25 needs a streamed Claude run, and KPI-27 and KPI-29 need production traffic. A deferred KPI that gets a measurement is judged normally. Safety KPIs cannot be deferred (asserted in code).
+- `environment_complete` means nothing fails, no safety KPI is open, and everything measurable here is measured. `release_ready` also needs zero deferred KPIs.
+- **Also deferred, not built:** Postgres with pgvector, Redis Cluster, NGINX/Envoy, vLLM, the Prometheus/Tempo/Grafana stack, and gateway role mapping (every caller gets `TIER_2_COMPUTE`). The blueprint's scale claims are unverified without them.
+- **Sign-off conditions that code cannot close:** an independently written red-team corpus (KPI-03), a KPI-24 judge from a different model family and a KPI-24 run through the API (`eval/released_judge.py --api`; no LLM key was available), and re-measuring the waived RAGAS gates (KPI-20 to 22). `released_judge.py` used to count an unreadable judge reply as "nothing unsupported"; it now leaves those claims out and counts the failures. Whether the recorded 0.18% was affected is unknown.
+
+### ADR-022 — k6 replaces JMeter (supersedes the JMeter part of ADR-011)
+- **Decision:** `load/k6_query.js` is the only load tool for KPI-31 to 35. JMeter is not installed, so a plan could not be run, and two tools measuring the same endpoint would need reconciling. 50K users need distributed k6 (k6 operator or k6 Cloud).
+- **Consequences:** `jmeter_50k_plan.jmx` is not built. The blueprint's per-request faithfulness check becomes the API's own verifier plus KPI-20 and KPI-24.

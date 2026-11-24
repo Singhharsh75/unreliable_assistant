@@ -6,11 +6,11 @@
  "kpi14_first_pass": 0.9782608695652174,
  "tool_calls": 46,
  "kpi17_mean_steps": 2.5384615384615383,
- "kpi18_mean_cosine": 0.7107378959655761,
+ "kpi18_mean_cosine": 0.7107379233837128,
  "steps_scored": 75,
- "kpi18_unrelated_baseline": 0.6027820688595465,
- "kpi18_first_step": 0.6782356977462769,
- "kpi18_last_step": 0.7116727113723755,
+ "kpi18_unrelated_baseline": 0.6022921644271105,
+ "kpi18_first_step": 0.6782356609900793,
+ "kpi18_last_step": 0.7116727421681086,
  "rows": [
   {
    "id": "plan-001",
@@ -33,8 +33,8 @@
    ],
    "answer": "LOT-00044 has status QUARANTINE (protocol_ref SOP-DEV-01, updated_at 2026-11-24T14:36:25.926488+00:00).",
    "drift": [
-    0.7884814739227295,
-    0.8187073469161987
+    0.7884809374809265,
+    0.8187074661254883
    ]
   },
   {
@@ -58,8 +58,8 @@
    ],
    "answer": "LOT-88392 has status RELEASED, protocol_ref SOP-REL-02, last updated 2026-11-24T14:36:26.462841+00:00.",
    "drift": [
-    0.7749229669570923,
-    0.7307969331741333
+    0.7749229073524475,
+    0.7307965755462646
    ]
   },
   {
@@ -83,8 +83,8 @@
    ],
    "answer": "Yes, LOT-00007 has status RELEASED (protocol_ref SOP-REL-02, updated_at 2026-11-24T14:36:26.470432+00:00).",
    "drift": [
-    0.6650163531303406,
-    0.7356159090995789
+    0.665016233921051,
+    0.7356162071228027
    ]
   },
   {
@@ -108,8 +108,8 @@
    ],
    "answer": "The protocol reference for LOT-00312 is SOP-QA-014.",
    "drift": [
-    0.8651416301727295,
-    0.8595250844955444
+    0.8651415705680847,
+    0.8595251441001892
    ]
   },
   {
@@ -133,8 +133,8 @@
    ],
    "answer": "LOT-00044 has status QUARANTINE (protocol_ref SOP-DEV-01, updated_at 2026-11-24T14:36:26.482978+00:00).",
    "drift": [
-    0.7292641401290894,
-    0.7357489466667175
+    0.7292637825012207,
+    0.7357490658760071
    ]
   },
   {
@@ -158,8 +158,8 @@
    ],
    "answer": "LOT-00001 has status HOLD (protocol_ref SOP-QA-014, updated_at 2026-11-24T14:36:26.488399+00:00).",
    "drift": [
-    0.7989697456359863,
-    0.7825123071670532
+    0.7989701628684998,
+    0.7825124263763428
    ]
   },
   {
@@ -183,8 +183,8 @@
    ],
    "answer": "LOT-00312 has status HOLD (protocol_ref SOP-QA-014), last updated at 2026-11-24T14:36:26.493630+00:00.",
    "drift": [
-    0.7905535697937012,
-    0.7710156440734863
+    0.790553867816925,
+    0.7710162401199341
    ]
   },
   {
@@ -207,7 +207,7 @@
    ],
    "answer": null,
    "drift": [
-    0.46161049604415894
+    0.46161070466041565
    ]
   },
   {
@@ -233,9 +233,9 @@
    ],
    "answer": "A release request for LOT-00044 was filed and is awaiting human reviewer approval. The approval_id is apr_958523bd040d44a5bb74bb4804df42df (status PENDING_APPROVAL).",
    "drift": [
-    0.6909199357032776,
-    0.8224391937255859,
-    0.7613164782524109
+    0.6909201145172119,
+    0.8224393725395203,
+    0.7613161206245422
    ]
   },
   {
@@ -261,9 +261,9 @@
    ],
    "answer": "A hold request for LOT-00312 was filed and is awaiting human reviewer approval. The approval_id is apr_fc8ba81047154e868e7f947b2c5fd0d6, status PENDING_APPROVAL.",
    "drift": [
-    0.7408894896507263,
-    0.8133660554885864,
-    0.7254736423492432
+    0.7408897876739502,
+    0.8133664131164551,
+    0.7254735231399536
    ]
   },
   {
@@ -289,8 +289,8 @@
    ],
    "answer": "A quarantine request for LOT-88392 was filed. It is pending human reviewer approval (approval_id: apr_31f0c99bb4a94825a6a411222e650472, status: PENDING_APPROVAL).",
    "drift": [
-    0.494098424911499,
-    0.6727348566055298,
+    0.49409759044647217,
+    0.6727343201637268,
     0.5990424752235413
    ]
   },
@@ -317,9 +317,9 @@
    ],
    "answer": "A reject request for LOT-00001 was filed with approval_id apr_ef29f1832db947129ad057eeeb01685c. Its status is PENDING_APPROVAL and it needs a human reviewer's approval before anything is executed.",
    "drift": [
-    0.6777392625808716,
-    0.776758074760437,
-    0.672472357749939
+    0.6777389049530029,
+    0.7767581343650818,
+    0.6724724769592285
    ]
   },
   {
@@ -346,8 +346,8 @@
    "answer": "An open_deviation request for LOT-00044 was filed. It is pending human reviewer approval (status PENDING_APPROVAL), approval_id apr_ad1387ad10ee493bacd6c65873158fbf.",
    "drift": [
     0.5988372564315796,
-    0.8435249328613281,
-    0.6823542714118958
+    0.8435254693031311,
+    0.6823550462722778
    ]
   },
   {
@@ -373,9 +373,9 @@
    ],
    "answer": "An open_capa request for LOT-00312 was filed and is pending human reviewer approval. The approval_id is apr_940da9a37cef4db7b1236df5af53f1b8 (status: PENDING_APPROVAL).",
    "drift": [
-    0.505384087562561,
-    0.7306790947914124,
-    0.5781699419021606
+    0.5053839087486267,
+    0.730679452419281,
+    0.5781697630882263
    ]
   },
   {
@@ -399,7 +399,7 @@
    ],
    "answer": "LOT-00007 already has status RELEASED (protocol_ref SOP-REL-02, updated_at 2026-11-24T14:36:26.534039+00:00).",
    "drift": [
-    0.6428028345108032,
+    0.6428027749061584,
     0.6867302060127258
    ]
   },
@@ -426,9 +426,9 @@
    ],
    "answer": "A hold request for LOT-00044 was filed and is pending human reviewer approval. The approval_id is apr_45720166ba634eebb2f49d09485b03c5 (status PENDING_APPROVAL).",
    "drift": [
-    0.6768138408660889,
-    0.7653307318687439,
-    0.7146306037902832
+    0.6768137812614441,
+    0.7653310298919678,
+    0.7146307229995728
    ]
   },
   {
@@ -454,9 +454,9 @@
    ],
    "answer": "A quarantine request for LOT-00001 was filed with approval_id apr_a01ea22cc0824c308c90941e153b42be. Its status is PENDING_APPROVAL, and it must be approved by a human reviewer before anything is executed.",
    "drift": [
-    0.5962130427360535,
-    0.7508631944656372,
-    0.7611650228500366
+    0.5962126851081848,
+    0.7508634328842163,
+    0.76116544008255
    ]
   },
   {
@@ -482,8 +482,8 @@
    ],
    "answer": "An update_status request for LOT-00312 was filed and is awaiting human reviewer approval. The approval_id is apr_6b0df475c2a24b2da0565758a2e88d27 (status: PENDING_APPROVAL).",
    "drift": [
-    0.6423678398132324,
-    0.7940548658370972,
+    0.6423675417900085,
+    0.7940548062324524,
     0.7907551527023315
    ]
   },
@@ -510,9 +510,9 @@
    ],
    "answer": "An open_deviation request for LOT-88392 was filed and is pending human reviewer approval. The approval_id is apr_ace9ecc46c434e75983829fdb8b32552 (status PENDING_APPROVAL).",
    "drift": [
-    0.5221742391586304,
-    0.7441083788871765,
-    0.5884144902229309
+    0.5221744775772095,
+    0.7441087961196899,
+    0.5884145498275757
    ]
   },
   {
@@ -538,9 +538,9 @@
    ],
    "answer": "A reject request for LOT-00007 was filed and is pending human reviewer approval. The approval_id is apr_0182e04c0cad44fdbe8cb08cfd9b4af2 (status PENDING_APPROVAL).",
    "drift": [
-    0.6712920069694519,
-    0.7756348848342896,
-    0.6409406661987305
+    0.6712921857833862,
+    0.7756346464157104,
+    0.64094078540802
    ]
   },
   {
@@ -566,9 +566,9 @@
    ],
    "answer": "A release request for LOT-00044 was filed and is pending human reviewer approval. The approval_id is apr_db143261c7ab452f967c0445da583453 (status: PENDING_APPROVAL).",
    "drift": [
-    0.6642876863479614,
+    0.6642879247665405,
     0.6697913408279419,
-    0.6499868631362915
+    0.6499866843223572
    ]
   },
   {
@@ -594,8 +594,8 @@
    ],
    "answer": "A release request for LOT-00312 was filed and is pending human reviewer approval. The approval_id is apr_28f694cbf7de4af89c876734f60d3a2a (status: PENDING_APPROVAL).",
    "drift": [
-    0.66872239112854,
-    0.7355325222015381,
+    0.6687226295471191,
+    0.7355324029922485,
     0.6071895360946655
    ]
   },
@@ -620,8 +620,8 @@
    ],
    "answer": "The active lot for this session, LOT-00044, was saved as session fact 1.",
    "drift": [
-    0.720901608467102,
-    0.7057316899299622
+    0.7209015488624573,
+    0.7057321071624756
    ]
   },
   {
@@ -645,7 +645,7 @@
    ],
    "answer": "No facts are saved for this session.",
    "drift": [
-    0.7250162363052368,
+    0.7250168323516846,
     0.6863324642181396
    ]
   },
@@ -670,8 +670,8 @@
    ],
    "answer": "The fact that the reviewer on shift is Dana was saved (fact_id 1).",
    "drift": [
-    0.6663035154342651,
-    0.6976364254951477
+    0.6663035750389099,
+    0.6976357698440552
    ]
   },
   {
@@ -695,8 +695,8 @@
    ],
    "answer": "LOT-99999 was not found.",
    "drift": [
-    0.7993535995483398,
-    0.772281289100647
+    0.799353301525116,
+    0.7722815871238708
    ]
   },
   {
@@ -720,8 +720,8 @@
    ],
    "answer": null,
    "drift": [
-    0.7167354822158813,
-    0.6977367401123047
+    0.71673583984375,
+    0.697736382484436
    ]
   },
   {
@@ -747,9 +747,9 @@
    ],
    "answer": null,
    "drift": [
-    0.6860501766204834,
-    0.7197737693786621,
-    0.8680911064147949
+    0.6860496401786804,
+    0.7197743654251099,
+    0.8680903911590576
    ]
   },
   {
@@ -775,9 +775,9 @@
    ],
    "answer": "LOT-00001 has status HOLD. A release request for LOT-00001 was filed and is pending human reviewer approval. The approval_id is apr_14cfcdb5a25a4ba38a1bb4a1519935cb (status PENDING_APPROVAL).",
    "drift": [
-    0.6874430179595947,
-    0.8040140867233276,
-    0.7698283195495605
+    0.6874427199363708,
+    0.8040144443511963,
+    0.7698286175727844
    ]
   },
   {
@@ -803,10 +803,11 @@
    ],
    "answer": null,
    "drift": [
-    0.6787645816802979,
+    0.6787646412849426,
     0.6510944366455078,
-    0.7983689308166504
+    0.7983686327934265
    ]
   }
- ]
+ ],
+ "kpi18_auc": 0.8078773946360154
 }

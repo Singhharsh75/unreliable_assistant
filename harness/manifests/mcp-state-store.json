@@ -42,9 +42,9 @@
     "tier": "TIER_3_MUTATE",
     "min_caller_tier": "TIER_2_COMPUTE",
     "hitl_gate": true,
-    "input_schema_sha256": "75ee861aca64833271da3989ec20195faae38a2bb6063d5598255bbb8b1df3d0"
+    "input_schema_sha256": "ca931d80bcb41a646e09944ee9d8488805c56dd979fd4957fab9c6709b6be0d4"
    }
   ]
  },
- "signature": "dMWMiDeaFYw030cdFsEu5YaQ0GkdM7JRwMkJjU8szijjn22uFXOmk10DEC+Be85gFnFXb/MDP5OA9bcE58A0Cg=="
+ "signature": "rww3cncvRJTH5ss2Vw289IqcGTVH9dMNu29XFwNHnlEzK/oNUJTFvpO+RLun0Ch4oRW12wEag6mNHvK4crT4Aw=="
 }

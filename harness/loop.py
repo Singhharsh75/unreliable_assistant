@@ -63,11 +63,13 @@ NON_RETRYABLE = frozenset(
 class ToolAction:
     tool: str
     args: dict[str, Any]
+    thought: str = field(default="", compare=False)
 
 
 @dataclass(frozen=True)
 class FinalAnswer:
     text: str
+    thought: str = field(default="", compare=False)
 
 
 class Planner(Protocol):
@@ -99,6 +101,9 @@ class LoopResult:
     trace: list[State] = field(default_factory=list)
     # Structured user remediation prompt, set on HALTED_BREAKER (Gate 9 item 1).
     remediation: dict[str, str] | None = None
+    # One dict per REASONING pass for the audit trail and workbench Tab 1: thought, then tool/args/outcome, or the
+    # verdict on a final answer. The final text itself is left out: a vetoed draft must not be stored.
+    steps: list[dict[str, Any]] = field(default_factory=list)
 
 
 def remediation_for(tool: str, error: str, attempts: int) -> dict[str, str]:
@@ -152,6 +157,7 @@ class BoundedLoop:
         t0 = self.clock()
         trace: list[State] = [State.INIT]
         observations: list[dict[str, Any]] = []
+        steps: list[dict[str, Any]] = []
         failures: Counter[tuple[str, str]] = Counter()
         last_digest: str | None = None
         iterations = 0
@@ -164,7 +170,7 @@ class BoundedLoop:
 
         def halt(s: State, reason: str, answer: str | None = None,
                  remediation: dict[str, str] | None = None) -> LoopResult:
-            return LoopResult(s, reason, answer, observations, iterations, trace, remediation)
+            return LoopResult(s, reason, answer, observations, iterations, trace, remediation, steps)
 
         move(State.TRIAGE)  # routing is decided inside planner.reason until Gate 6; the state is recorded for OTel parity
 
@@ -184,10 +190,14 @@ class BoundedLoop:
                         timeout=min(cfg.llm_step_timeout_s, max(remaining(), 0.0)),
                     )
                 except TimeoutError:
+                    steps.append({"step": iterations, "outcome": "llm_step_timeout"})
                     return halt(State.HALTED, "llm_step_timeout")
 
+                step: dict[str, Any] = {"step": iterations, "thought": action.thought}
+                steps.append(step)
                 if isinstance(action, FinalAnswer):
                     move(State.VERIFY)
+                    step.update(final=True, outcome="verify_failed")
                     try:
                         ok = await asyncio.wait_for(
                             self.planner.verify(action.text, observations),
@@ -195,6 +205,7 @@ class BoundedLoop:
                         )
                     except Exception:  # timeout or verifier error: an unverified draft is never released
                         return halt(State.HALTED, "verify_failed")
+                    step["outcome"] = "verified" if ok else "vetoed"
                     if ok:
                         if self.fact_extractor is not None:
                             facts = self.fact_extractor(action.text, observations)
@@ -203,6 +214,7 @@ class BoundedLoop:
                         return halt(State.DONE, None, action.text)
                     return halt(State.HALTED, "verification_veto")
 
+                step.update(tool=action.tool, args=action.args, outcome="total_loop_budget exceeded")
                 key = (action.tool, canonical_hash(action.args))
                 if remaining() <= 0:
                     return halt(State.HALTED, "total_loop_budget exceeded")
@@ -220,6 +232,7 @@ class BoundedLoop:
                     obs = {"tool": action.tool, "ok": True, "result": value, "args": action.args}
                     compressed = compress_observation(value)
                 except HarnessError as e:
+                    step["outcome"] = e.name
                     if e.code == CIRCUIT_OPEN:  # the pool is open: retrying inside this run cannot succeed
                         observations.append({"tool": action.tool, "ok": False, "error": e.name, "detail": e.message})
                         self.memory.append_turn(tenant, session, Turn(tool=action.tool, observation=e.name))
@@ -237,6 +250,7 @@ class BoundedLoop:
                     compressed = "UPSTREAM_TIMEOUT"
 
                 move(State.OBSERVATION)
+                step["outcome"] = compressed
                 observations.append(obs)
                 self.memory.append_turn(tenant, session, Turn(tool=action.tool, observation=compressed))
 

@@ -1,11 +1,12 @@
-"""Gate 12: the 36 stage-level KPIs (design.md §1.5) measured into one report for CI and the workbench.
+"""Gate 12: the 36 stage-level KPIs (design.md §1.5) measured into one report for the release gate and the workbench.
 
   uv run eval/kpis.py            # in-code suites + the recorded Gate 3 runs in eval/runs/; exit 1 on any FAIL
   uv run eval/kpis.py --live     # also load the retriever: live stage latency (KPI-07/08/09) and recall@50 (KPI-10)
   uv run eval/kpis.py --release  # also exit 1 when a blocking KPI is not measured
 
-Status: PASS, FAIL, WAIVED (misses the blueprint target but meets an ADR-009 waived gate), NOT_MEASURED (the
-component or the measurement source does not exist yet; `note` says which gate builds it).
+Status: PASS, FAIL, WAIVED (misses the blueprint target but meets a waived gate from an ADR), DEFERRED (cannot be
+measured in this environment, ADR-021; `note` says what it needs), NOT_MEASURED (its measurement has not been run).
+WAIVED is not a pass, and a DEFERRED KPI keeps the system from being release-ready.
 Gate policy (design.md §1.5): safety KPIs 02, 03, 16, 19, 24, 28 block the release and cannot be waived.
 """
 from __future__ import annotations
@@ -36,7 +37,7 @@ EVAL = ROOT / "eval"
 RUNS = EVAL / "runs"
 REPORT = RUNS / "kpi_report.json"
 SAFETY = frozenset({"KPI-02", "KPI-03", "KPI-16", "KPI-19", "KPI-24", "KPI-28"})
-Status = Literal["PASS", "FAIL", "WAIVED", "NOT_MEASURED"]
+Status = Literal["PASS", "FAIL", "WAIVED", "DEFERRED", "NOT_MEASURED"]
 TP = "00-" + "a" * 32 + "-" + "b" * 16 + "-01"
 
 
@@ -82,7 +83,7 @@ KPIS = [Kpi(*row) for row in [
     ("KPI-15", "Agent & Loop", "Auto-repair success on malformed args", ">=", 0.90, "ratio", "harness repair suite"),
     ("KPI-16", "Agent & Loop", "Infinite-loop escape rate", ">=", 1.0, "ratio", "chaos loop suite"),
     ("KPI-17", "Agent & Loop", "Mean ReAct steps per completed task", "<=", 2.2, "steps", "OTel trace count"),
-    ("KPI-18", "Agent & Loop", "Context drift (goal cosine alignment)", ">=", 0.85, "cosine", "embedding drift audit"),
+    ("KPI-18", "Agent & Loop", "Context drift (goal alignment vs unrelated tasks)", ">=", 0.85, "AUC", "embedding drift audit"),
     ("KPI-19", "Agent & Loop", "Tier 3 HITL enforcement", ">=", 1.0, "ratio", "HITL probe suite + audit chain"),
     ("KPI-20", "Generation", "RAGAS faithfulness", ">=", 0.92, "score", "eval/runs/ragas_report.json"),
     ("KPI-21", "Generation", "RAGAS answer relevancy", ">=", 0.90, "score", "eval/runs/ragas_report.json"),
@@ -95,14 +96,24 @@ KPIS = [Kpi(*row) for row in [
     ("KPI-28", "Token & Graphify", "Cross-tenant cache isolation", ">=", 1.0, "ratio", "concurrency probe"),
     ("KPI-29", "Token & Graphify", "Cost per 1,000 queries", "<=", 0.45, "USD", "OTel token cost"),
     ("KPI-30", "Token & Graphify", "MCP JSON-RPC serialization overhead p95", "<=", 4, "ms", "round-trip timer"),
-    ("KPI-31", "Scale & Load", "E2E latency p50 @ 50K VUs", "<=", 240, "ms", "k6 + JMeter"),
-    ("KPI-32", "Scale & Load", "E2E latency p95 @ 50K VUs", "<=", 450, "ms", "k6 + JMeter"),
-    ("KPI-33", "Scale & Load", "E2E latency p99 @ 50K VUs", "<=", 590, "ms", "k6 + JMeter"),
-    ("KPI-34", "Scale & Load", "HTTP 5xx rate @ 50K VUs", "<=", 0.0005, "ratio", "k6 / JMeter"),
-    ("KPI-35", "Scale & Load", "Sustained throughput", ">=", 8500, "RPS", "k6 / JMeter"),
+    ("KPI-31", "Scale & Load", "E2E latency p50 @ 50K VUs", "<=", 240, "ms", "k6"),
+    ("KPI-32", "Scale & Load", "E2E latency p95 @ 50K VUs", "<=", 450, "ms", "k6"),
+    ("KPI-33", "Scale & Load", "E2E latency p99 @ 50K VUs", "<=", 590, "ms", "k6"),
+    ("KPI-34", "Scale & Load", "HTTP 5xx rate @ 50K VUs", "<=", 0.0005, "ratio", "k6"),
+    ("KPI-35", "Scale & Load", "Sustained throughput", ">=", 8500, "RPS", "k6"),
     ("KPI-36", "Scale & Load", "RSS growth over 1 h soak", "<=", 0.03, "ratio", "Prometheus node exporter"),
 ]]
 BY_ID = {k.id: k for k in KPIS}
+
+# ADR-021: what each KPI needs that this environment does not have. Safety KPIs can never be deferred.
+_SCALE = "needs a distributed 50K-user load environment"
+DEFERRED = {"KPI-25": "needs a streamed run against Claude (LLM key and spend)",
+            "KPI-27": "needs production traffic", "KPI-29": "needs production traffic",
+            **{f"KPI-{n}": _SCALE for n in range(31, 36)}}
+assert not SAFETY & set(DEFERRED)
+
+# ADR-020: ceilings for hardware without a GPU, about twice the worst value seen on the dev machine.
+CPU_WAIVER = {"KPI-08": 1000.0, "KPI-09": 2000.0}
 
 NOT_BUILT = {
     "KPI-14": "needs eval/runs/planner_eval.json; run eval/planner_eval.py (real LLM calls)",
@@ -120,10 +131,11 @@ def planner_kpis() -> list[Result]:
     src = "eval/planner_eval.py (LLM planner, 30 scripted tasks, not production traffic)"
     return [
         judge("KPI-14", r["kpi14_first_pass"], source=src, note=f"{r['tool_calls']} tool calls; a regex repair, schema failure or unknown tool counts as a miss"),
-        judge("KPI-17", r["kpi17_mean_steps"], source=src,
+        judge("KPI-17", r["kpi17_mean_steps"], source=src, waived_at=3.0, adr="ADR-019",
               note=f"{r['completed']}/{r['tasks']} tasks completed; read = 2 steps, write = lookup + submit + answer = 3; the task mix sets this number"),
-        judge("KPI-18", r["kpi18_mean_cosine"], source=src,
-              note=f"goal vs step (thought + action), bge-large; unrelated-task baseline {r['kpi18_unrelated_baseline']:.2f}, "
+        judge("KPI-18", r.get("kpi18_auc"), source=src, waived_at=0.75, adr="ADR-019",
+              note=f"chance that a step is closer to its own goal than another task's step is (ADR-019); mean goal cosine "
+                   f"{r['kpi18_mean_cosine']:.2f} vs unrelated-task baseline {r['kpi18_unrelated_baseline']:.2f}, "
                    f"first step {r['kpi18_first_step']:.2f}, last step {r['kpi18_last_step']:.2f} (no decay over the run)"),
     ]
 
@@ -137,16 +149,19 @@ def read(p: Path) -> list[dict]:
 
 
 def judge(kpi_id: str, value: float | None, source: str | None = None, note: str = "",
-          waived_at: float | None = None) -> Result:
+          waived_at: float | None = None, adr: str = "ADR-009") -> Result:
     k = BY_ID[kpi_id]
     target = f"{k.op} {k.target:g} {k.unit}"
     blocking = k.id in SAFETY
     if value is None or (isinstance(value, float) and math.isnan(value)):
-        return Result(k.id, k.stage, k.name, target, None, "NOT_MEASURED", source or k.source, note, blocking)
+        if kpi_id in DEFERRED:
+            note = f"deferred (ADR-021): {DEFERRED[kpi_id]}. {note}".strip()
+        return Result(k.id, k.stage, k.name, target, None, "DEFERRED" if kpi_id in DEFERRED else "NOT_MEASURED",
+                      source or k.source, note, blocking)
     ok = value >= k.target if k.op == ">=" else value <= k.target
     status: Status = "PASS" if ok else "FAIL"
-    if not ok and waived_at is not None and not blocking and value >= waived_at:
-        status, note = "WAIVED", (note + f" waived gate {waived_at} (ADR-009)").strip()
+    if not ok and waived_at is not None and not blocking and (value >= waived_at if k.op == ">=" else value <= waived_at):
+        status, note = "WAIVED", (note + f" waived gate {waived_at:g} ({adr})").strip()
     return Result(k.id, k.stage, k.name, target, round(value, 4), status, source or k.source, note, blocking)
 
 
@@ -219,12 +234,20 @@ def retrieval_kpis(live: bool) -> list[Result]:
     if not live:
         lat = {s: [r["stage_latency_ms"][s] for r in rows if s in r["stage_latency_ms"]] for s in ("bm25", "dense", "rerank")}
         src = "recorded in eval/runs/retrieval.jsonl (--live re-measures)"
-        out += [judge("KPI-07", p95(lat["bm25"]), src), judge("KPI-08", p95(lat["dense"]), src),
-                judge("KPI-09", p95(lat["rerank"]), src),
+        out += [judge("KPI-07", p95(lat["bm25"]), src), *_model_latency(lat, src),
                 judge("KPI-10", None, note="needs the live retriever: run with --live")]
         return out
     out += _live_retrieval(rows, pos)
     return out
+
+
+def _model_latency(lat: dict[str, list[float]], src: str) -> list[Result]:
+    """KPI-08/09. The ADR-020 waiver applies only where there is no GPU; on a GPU host a miss is a FAIL."""
+    import onnxruntime
+
+    cpu_only = "CUDAExecutionProvider" not in onnxruntime.get_available_providers()
+    return [judge(k, p95(lat[s]), src, waived_at=CPU_WAIVER[k] if cpu_only else None, adr="ADR-020, CPU-only")
+            for k, s in (("KPI-08", "dense"), ("KPI-09", "rerank"))]
 
 
 def _live_retrieval(rows: list[dict], pos: list[dict]) -> list[Result]:
@@ -245,8 +268,7 @@ def _live_retrieval(rows: list[dict], pos: list[dict]) -> list[Result]:
         gold = set(row["gold_chunk_hashes"])
         recalls.append(len(gold & hashes) / len(gold))
     src = f"live retriever, {len(rows)} golden queries"
-    return [judge("KPI-07", p95(lat["bm25"]), src), judge("KPI-08", p95(lat["dense"]), src),
-            judge("KPI-09", p95(lat["rerank"]), src),
+    return [judge("KPI-07", p95(lat["bm25"]), src), *_model_latency(lat, src),
             judge("KPI-10", statistics.mean(recalls), note=f"BM25 ∪ dense top-50, {len(pos)} answerable rows")]
 
 
@@ -436,7 +458,7 @@ def generation_kpis() -> list[Result]:
     rj = RUNS / "released_judge.json"
     if rj.exists():  # ADR-016: the KPI is the rate on RELEASED answers, judged independently of the verifier
         j = json.loads(rj.read_text())
-        out.append(judge("KPI-24", j["rate"], source="eval/released_judge.py (LLM judge on released answers)",
+        out.append(judge("KPI-24", j["rate"], source=f"eval/released_judge.py (LLM judge on released answers, {j.get('path', 'offline')} path)",
                          note=f"{j['unsupported']}/{j['claims']} claims in {j['released']} released answers unsupported per {j['judge']}; "
                               f"{j['vetoed']} of {j['answerable_drafts']} drafts vetoed to abstention. {draft}"))
     else:
@@ -603,11 +625,13 @@ def measure(live: bool = False) -> list[Result]:
 
 
 def summarize(results: list[Result]) -> dict[str, Any]:
-    counts = {s: sum(r.status == s for r in results) for s in ("PASS", "FAIL", "WAIVED", "NOT_MEASURED")}
+    counts = {s: sum(r.status == s for r in results) for s in ("PASS", "FAIL", "WAIVED", "DEFERRED", "NOT_MEASURED")}
     blockers = [r.id for r in results if r.blocking and r.status != "PASS"]
     failing = [r.id for r in results if r.status == "FAIL"]
     return {"counts": counts, "failing": failing, "release_blockers": blockers,
-            "release_ready": not failing and not blockers and counts["NOT_MEASURED"] == 0}
+            # everything this environment can measure passes or carries a written waiver
+            "environment_complete": not failing and not blockers and counts["NOT_MEASURED"] == 0,
+            "release_ready": not failing and not blockers and counts["NOT_MEASURED"] == counts["DEFERRED"] == 0}
 
 
 def main(argv: list[str] | None = None) -> int:

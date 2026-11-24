@@ -10,11 +10,13 @@ Every MCP tool call passes through four steps, in this order:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hashlib
 import inspect
 import json
 import re
-from collections.abc import Callable, Iterable
+from collections import OrderedDict
+from collections.abc import AsyncIterator, Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any, Literal
 from uuid import UUID
@@ -36,6 +38,9 @@ from harness.errors import (
 Tier = Literal["TIER_1_READ", "TIER_2_COMPUTE", "TIER_3_MUTATE"]
 TIER_RANK: dict[str, int] = {"TIER_1_READ": 1, "TIER_2_COMPUTE": 2, "TIER_3_MUTATE": 3}
 METHOD_NOT_FOUND = -32601
+# shortcut: one LRU shared by all tenants; a key evicted after this many later calls would run again on a retry. Move
+# to a per-tenant store with a TTL (Redis) when retries can arrive that late or one tenant can flood the rest.
+MAX_IDEMPOTENCY_RESULTS = 10_000
 
 # Whole-value rewrites only. Free text is never touched, so a query that merely mentions a lot is unaffected.
 _REPAIR_RULES: list[tuple[re.Pattern[str], Callable[[re.Match[str]], str]]] = [
@@ -57,6 +62,8 @@ class ToolSpec:
     hitl_gate: bool = False
     # Bulkhead pool the handler runs in ("rag", "db", "llm"). Ignored when the harness has no bulkheads.
     pool: str | None = None
+    # Runtime failover (Gate 11): returns the (pool, handler) for this call instead of the two fields above.
+    route: Callable[[], tuple[str | None, Callable[[BaseModel], Any]]] | None = None
 
     def __post_init__(self) -> None:
         if "ctx" not in self.input_model.model_fields:
@@ -65,6 +72,9 @@ class ToolSpec:
     @property
     def required_tier(self) -> Tier:
         return self.min_caller_tier or self.tier
+
+    def target(self) -> tuple[str | None, Callable[[BaseModel], Any]]:
+        return self.route() if self.route else (self.pool, self.handler)
 
 
 @dataclass(frozen=True)
@@ -111,9 +121,9 @@ class ToolExecutionHarness:
     tools: Iterable[ToolSpec]
     bulkheads: dict[str, Bulkhead] = field(default_factory=dict)
     _specs: dict[str, ToolSpec] = field(init=False, default_factory=dict)
-    # (tenant_id, idempotency_key) -> (args_digest, result). Successful calls only.
-    _results: dict[tuple[str, str], tuple[str, Any]] = field(init=False, default_factory=dict)
-    _locks: dict[tuple[str, str], asyncio.Lock] = field(init=False, default_factory=dict)
+    # (tenant_id, idempotency_key) -> (args_digest, result). Successful calls only, least recently used evicted first.
+    _results: OrderedDict[tuple[str, str], tuple[str, Any]] = field(init=False, default_factory=OrderedDict)
+    _locks: dict[tuple[str, str], list[Any]] = field(init=False, default_factory=dict)  # key -> [lock, calls using it]
 
     def __post_init__(self) -> None:
         for spec in self.tools:
@@ -125,12 +135,27 @@ class ToolExecutionHarness:
 
     async def call(self, tool: str, payload: dict[str, Any], *, caller_tier: Tier) -> CallResult:
         spec = self._specs.get(tool)
-        with span("mcp.client", tool=tool, pool=spec.pool if spec else None, caller_tier=caller_tier) as s:
-            res = await self._call(spec, tool, payload, caller_tier)
+        pool, handler = spec.target() if spec else (None, None)
+        with span("mcp.client", tool=tool, pool=pool, caller_tier=caller_tier) as s:
+            res = await self._call(spec, tool, payload, caller_tier, pool, handler)
             s.set_attribute("replayed", res.replayed)
             return res
 
-    async def _call(self, spec: ToolSpec | None, tool: str, payload: dict[str, Any], caller_tier: Tier) -> CallResult:
+    @contextlib.asynccontextmanager
+    async def _exclusive(self, scope: tuple[str, str]) -> AsyncIterator[None]:
+        """One call at a time per idempotency key. The lock is dropped with its last user, waiters included."""
+        entry = self._locks.setdefault(scope, [asyncio.Lock(), 0])
+        entry[1] += 1
+        try:
+            async with entry[0]:
+                yield
+        finally:
+            entry[1] -= 1
+            if entry[1] == 0:
+                del self._locks[scope]
+
+    async def _call(self, spec: ToolSpec | None, tool: str, payload: dict[str, Any], caller_tier: Tier,
+                    pool_name: str | None, handler: Callable[[BaseModel], Any] | None) -> CallResult:
         if spec is None:
             raise HarnessError(METHOD_NOT_FOUND, f"unknown tool {tool!r}")
         if not isinstance(payload, dict):
@@ -156,29 +181,31 @@ class ToolExecutionHarness:
         scope = (ctx.tenant_id, str(key))
         digest = canonical_hash(model.model_dump(mode="json", exclude={"ctx"}))
 
-        lock = self._locks.setdefault(scope, asyncio.Lock())
-        async with lock:  # a concurrent retry with the same key waits, then sees the cached result
+        async with self._exclusive(scope):  # a concurrent retry with the same key waits, then sees the cached result
             if scope in self._results:
                 cached_digest, cached_value = self._results[scope]
                 if cached_digest != digest:
                     raise HarnessError(
                         INVALID_PARAMS, "idempotency_key was already used with different arguments"
                     )
+                self._results.move_to_end(scope)
                 return CallResult(value=cached_value, replayed=True, repairs=tuple(repairs))
 
-            pool = self.bulkheads.get(spec.pool) if spec.pool else None
+            pool = self.bulkheads.get(pool_name) if pool_name else None
             try:
                 if pool is not None:
-                    value = await pool.run(spec.handler, model)
-                elif inspect.iscoroutinefunction(spec.handler):
-                    value = await spec.handler(model)
+                    value = await pool.run(handler, model)
+                elif inspect.iscoroutinefunction(handler):
+                    value = await handler(model)
                 else:
-                    value = await asyncio.to_thread(spec.handler, model)
+                    value = await asyncio.to_thread(handler, model)
             except HarnessError:
                 raise
             except Exception as exc:  # a crashing tool is a failed step, not a crashed loop
                 raise HarnessError(INTERNAL_ERROR, f"{tool} raised {type(exc).__name__}") from exc
             self._results[scope] = (digest, value)
+            if len(self._results) > MAX_IDEMPOTENCY_RESULTS:
+                self._results.popitem(last=False)
             return CallResult(value=value, replayed=False, repairs=tuple(repairs))
 
     @staticmethod

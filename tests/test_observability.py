@@ -107,10 +107,10 @@ def test_latency_breach_enables_aggressive_cache_and_cuts_top_k():
     for _ in range(10):
         m.record("agent.query", 700)
     (inc,) = ir.evaluate()
-    assert inc.name == "latency_breach" and cfg.cache_cosine_threshold == 0.92 and cfg.top_k == 25
+    assert inc.name == "latency_breach" and cfg.cache_aggressive and cfg.top_k == 25
     assert ir.evaluate() == []  # an open incident does not re-fire
     ir.resolve("latency_breach")
-    assert cfg.top_k == 50 and cfg.cache_cosine_threshold is None
+    assert cfg.top_k == 50 and not cfg.cache_aggressive
 
 
 def test_latency_window_is_30s():
@@ -194,3 +194,53 @@ def test_thresholds_are_the_blueprint_values():
     t = Thresholds()
     assert (t.latency_p95_ms, t.latency_window_s, t.faithfulness_floor, t.hang_ms, t.hang_rate, t.redis_cpu) == \
         (550, 30, 0.90, 150, 0.01, 0.85)
+
+
+def test_orchestrator_hands_the_cache_knobs_to_the_cache():
+    from context.cache import AnswerCache
+
+    rag = FakeRag(HybridRetrieveOut(chunks=[chunk(COLD)], top_score=0.9, abstain=False, stage_latency_ms={}))
+    o = build(rag)
+    o.cache = AnswerCache()
+    q = "How are cold-chain SKUs stored?"
+    ask(o, q)
+    assert len(rag.seen) == 1 and ask(o, "How are the cold-chain SKUs stored?") and len(rag.seen) == 2  # exact match only
+    o.config.cache_aggressive = True
+    ask(o, "How are cold-chain SKUs stored, please?")
+    assert len(rag.seen) == 2
+    o.config.cache_key_scope = "tenant_user"
+    ask(o, q)
+    assert len(rag.seen) == 3  # the shared entry is out of reach once keys are per user
+
+
+def test_failover_routes_retrieval_to_the_replica_and_restarts_the_worker():
+    cfg, restarted = RuntimeConfig(), []
+    pools = {"rag": Bulkhead("rag", 2), "rag_replica": Bulkhead("rag_replica", 2)}
+    ok = HybridRetrieveOut(chunks=[chunk(COLD)], top_score=0.9, abstain=False, stage_latency_ms={})
+    primary, replica = FakeRag(ok), FakeRag(ok)
+    spec = ToolSpec("hybrid_retrieve", HybridRetrieveIn, "TIER_1_READ", primary, pool="rag",
+                    route=lambda: ("rag_replica", replica) if cfg.rag_index == "replica" else ("rag", primary))
+    o = Orchestrator(ToolExecutionHarness([*StateStore().specs(pool=None), spec], bulkheads=pools),
+                     Gen("Cold-chain SKUs are stored between 2 and 8 degrees Celsius."), config=cfg)
+    m = WindowedMetrics(clock=Clock())
+    ir = IncidentResponder(m, cfg, bulkheads=pools, workers={"rag": lambda: restarted.append("rag")})
+    assert ask(o)["status"] == "DONE" and len(primary.seen) == 1
+    for _ in range(100):
+        m.record("mcp.client", 200, pool="rag")
+    ir.evaluate()
+    assert pools["rag"].is_open and restarted == ["rag"]
+    assert ask(o)["status"] == "DONE" and (len(primary.seen), len(replica.seen)) == (1, 1)
+    assert [s.attributes["pool"] for s in EXPORTER.get_finished_spans()
+            if s.name == "mcp.client" and s.attributes["tool"] == "hybrid_retrieve"] == ["rag", "rag_replica"]
+
+
+def test_cache_leak_incident_does_not_reopen_on_the_old_count():
+    from types import SimpleNamespace
+
+    cache = SimpleNamespace(leaks_blocked=1)
+    _, cfg, ir, _ = responder(cache=cache)
+    assert [i.name for i in ir.evaluate()] == ["cache_stampede_or_leak"] and cfg.cache_key_scope == "tenant_user"
+    ir.resolve("cache_stampede_or_leak")
+    assert ir.evaluate() == [] and cfg.cache_key_scope == "tenant"
+    cache.leaks_blocked = 2
+    assert len(ir.evaluate()) == 1
