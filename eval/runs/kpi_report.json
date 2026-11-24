@@ -1,10 +1,10 @@
 {
   "summary": {
     "counts": {
-      "PASS": 14,
+      "PASS": 17,
       "FAIL": 4,
       "WAIVED": 3,
-      "NOT_MEASURED": 15
+      "NOT_MEASURED": 12
     },
     "failing": [
       "KPI-03",
@@ -14,8 +14,7 @@
     ],
     "release_blockers": [
       "KPI-03",
-      "KPI-24",
-      "KPI-28"
+      "KPI-24"
     ],
     "release_ready": false
   },
@@ -25,7 +24,7 @@
       "stage": "Ingress & Triage",
       "name": "Pre-hook guardrail latency p95",
       "target": "<= 15 ms",
-      "value": 0.3821,
+      "value": 0.4312,
       "status": "PASS",
       "source": "eval/redteam.py timer (OTel hook.pre in production)",
       "note": "",
@@ -69,7 +68,7 @@
       "stage": "Ingress & Triage",
       "name": "Triage latency p95",
       "target": "<= 25 ms",
-      "value": 0.0263,
+      "value": 0.0261,
       "status": "PASS",
       "source": "classify() timer",
       "note": "",
@@ -292,7 +291,7 @@
       "value": null,
       "status": "NOT_MEASURED",
       "source": "FastAPI stream metric",
-      "note": "no streaming FastAPI endpoint yet",
+      "note": "needs a streamed run against Claude; last snapshot used None",
       "blocking": false
     },
     {
@@ -300,10 +299,10 @@
       "stage": "Token & Graphify",
       "name": "Prompt token reduction",
       "target": ">= 0.45 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "token counter hook",
-      "note": "Graphify vault and token counter are Gate 17",
+      "value": 0.5736,
+      "status": "PASS",
+      "source": "token counter (build_prompt) on retrieval.jsonl",
+      "note": "223 answered golden questions; mean prompt 669 vs 1570 tokens",
       "blocking": false
     },
     {
@@ -314,7 +313,7 @@
       "value": null,
       "status": "NOT_MEASURED",
       "source": "Redis hit/miss",
-      "note": "semantic cache is Gate 17",
+      "note": "steady-state hit ratio needs production traffic; replaying the golden set measures only the replay",
       "blocking": false
     },
     {
@@ -322,10 +321,10 @@
       "stage": "Token & Graphify",
       "name": "Cross-tenant cache isolation",
       "target": ">= 1 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
+      "value": 1.0,
+      "status": "PASS",
       "source": "concurrency probe",
-      "note": "semantic cache is Gate 17",
+      "note": "300 concurrent requests, 3 tenants, 240 cache hits, 0 egress blocks",
       "blocking": true
     },
     {
@@ -336,7 +335,7 @@
       "value": null,
       "status": "NOT_MEASURED",
       "source": "OTel token cost",
-      "note": "token cost export needs the LLM path in production",
+      "note": "needs LLM token usage from production traffic",
       "blocking": false
     },
     {
@@ -344,7 +343,7 @@
       "stage": "Token & Graphify",
       "name": "MCP JSON-RPC serialization overhead p95",
       "target": "<= 4 ms",
-      "value": 0.0242,
+      "value": 0.026,
       "status": "PASS",
       "source": "round-trip timer",
       "note": "500 round trips, 4 chunks of 2,000 chars",
@@ -357,8 +356,8 @@
       "target": "<= 240 ms",
       "value": null,
       "status": "NOT_MEASURED",
-      "source": "k6 + JMeter",
-      "note": "50K-VU load test is Gates 15-16",
+      "source": "eval/runs/k6_summary.json",
+      "note": "not at 50,000 VUs; measured 4 VUs, 1.7 RPS, p50 1998 / p95 2604 / p99 3039 ms, 5xx 0.0000",
       "blocking": false
     },
     {
@@ -368,8 +367,8 @@
       "target": "<= 450 ms",
       "value": null,
       "status": "NOT_MEASURED",
-      "source": "k6 + JMeter",
-      "note": "50K-VU load test is Gates 15-16",
+      "source": "eval/runs/k6_summary.json",
+      "note": "not at 50,000 VUs; measured 4 VUs, 1.7 RPS, p50 1998 / p95 2604 / p99 3039 ms, 5xx 0.0000",
       "blocking": false
     },
     {
@@ -379,8 +378,8 @@
       "target": "<= 590 ms",
       "value": null,
       "status": "NOT_MEASURED",
-      "source": "k6 + JMeter",
-      "note": "50K-VU load test is Gates 15-16",
+      "source": "eval/runs/k6_summary.json",
+      "note": "not at 50,000 VUs; measured 4 VUs, 1.7 RPS, p50 1998 / p95 2604 / p99 3039 ms, 5xx 0.0000",
       "blocking": false
     },
     {
@@ -390,8 +389,8 @@
       "target": "<= 0.0005 ratio",
       "value": null,
       "status": "NOT_MEASURED",
-      "source": "k6 / JMeter",
-      "note": "50K-VU load test is Gates 15-16",
+      "source": "eval/runs/k6_summary.json",
+      "note": "not at 50,000 VUs; measured 4 VUs, 1.7 RPS, p50 1998 / p95 2604 / p99 3039 ms, 5xx 0.0000",
       "blocking": false
     },
     {
@@ -401,8 +400,8 @@
       "target": ">= 8500 RPS",
       "value": null,
       "status": "NOT_MEASURED",
-      "source": "k6 / JMeter",
-      "note": "50K-VU load test is Gates 15-16",
+      "source": "eval/runs/k6_summary.json",
+      "note": "not at 50,000 VUs; measured 4 VUs, 1.7 RPS, p50 1998 / p95 2604 / p99 3039 ms, 5xx 0.0000",
       "blocking": false
     },
     {
@@ -410,10 +409,10 @@
       "stage": "Scale & Load",
       "name": "RSS growth over 1 h soak",
       "target": "<= 0.03 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "Prometheus node exporter",
-      "note": "1 h soak test is Gates 15-16",
+      "value": -0.027,
+      "status": "PASS",
+      "source": "eval/runs/soak.json",
+      "note": "60.6 min at 4 VUs",
       "blocking": false
     }
   ]

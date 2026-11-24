@@ -25,7 +25,9 @@ if str(ROOT) not in sys.path:
 from guardrails import injection  # noqa: E402
 from guardrails.prehook import is_poisoned  # noqa: E402
 
-FILE = Path(os.getenv("RAG_INDEX", ROOT / "indexes" / "rag")) / "chunk_review.json"
+# tracked in git next to the vault: the decisions are an audit trail, the index directory is a disposable build output
+FILE = Path(os.getenv("RAG_REVIEW", ROOT / "knowledge_vault" / "chunk_review.json"))
+CHUNKS = Path(os.getenv("RAG_INDEX", ROOT / "indexes" / "rag")) / "chunks.jsonl"
 SERVE = {"CLEAN", "APPROVED"}
 HUMAN = {"APPROVED", "REJECTED"}
 
@@ -91,14 +93,13 @@ class ReviewQueue:
 
 def main(argv: list[str]) -> int:
     q = ReviewQueue()
-    chunks = FILE.parent / "chunks.jsonl"
     if argv[:1] == ["scan"]:
-        print(q.scan([json.loads(line) for line in chunks.read_text().splitlines()]))
+        print(q.scan([json.loads(line) for line in CHUNKS.read_text().splitlines()]))
         return 0
     if argv[:1] == ["list"]:
         texts = {}
-        if chunks.exists():
-            texts = {c["chunk_hash"]: c["text"] for c in map(json.loads, chunks.read_text().splitlines())}
+        if CHUNKS.exists():
+            texts = {c["chunk_hash"]: c["text"] for c in map(json.loads, CHUNKS.read_text().splitlines())}
         for h, r in q.pending().items():
             print(f"{h}  {r['note_id']}  score={r['score']}  rules={r['rules']}\n    {texts.get(h, '')[:300]!r}\n")
         print(f"{len(q.pending())} chunk(s) quarantined")

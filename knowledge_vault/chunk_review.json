@@ -1,0 +1,218 @@
+{
+ "0060d31a872236e8ac3e7abeb99b009d8dfae51d399aac53d7a0aecc1d0cd3c6": {
+  "note_id": "sop-calibration",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "0ec2d9a58cc82f209a2f017e335b0a54a8775213efb0152dc739da9415ee14ce": {
+  "note_id": "sop-label-control",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "10394871e285901c3545c9c798588e59344444facde8ca63df27da23548985c1": {
+  "note_id": "sop-recall",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "174a7edfa85732450ce3ed70d55814428cb2f7f1d772119f906f56fd2699ecd0": {
+  "note_id": "sop-returns",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "19af2cb2766958d41c976323cb9508738a1b4f65e1622b58e948d1812ae4e757": {
+  "note_id": "sop-oos",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "1ac461a6aa9bf36370bad2b3299820bb8c0e838cf395d22999f18a4229efb338": {
+  "note_id": "sop-complaint-handling",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "1f185e5ff6ba0fad6fdbd81d26f220cfdb19704e8fc894af81f492913bd4a742": {
+  "note_id": "sop-stability-testing",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "26f757719aed480db5d100011d4ad7136dc33d2aa46b7f7449fe0cad579bda4c": {
+  "note_id": "sop-deviation",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "304e3c26db22c5f1b63c14d50e0305a0bf79b5df2a5cb31b0f769d1b70e92311": {
+  "note_id": "sop-shipping",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "3ad0b5ba9e764f4452fa5cb7141b12c393170007895e30d3a86cdf5ef3a8a1e5": {
+  "note_id": "sop-incoming-inspection",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "3c232584dfecc26886f8b76557efa5964efcb85911a5d2f757223a80a071381d": {
+  "note_id": "globex-shipping",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "4a88ed027d994aa50afb6a403dda3794c673e81ae7fb8328b38e99a88eae13b1": {
+  "note_id": "sop-environmental-monitoring",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "51b6ec91c8bb3591fd602991722d3f5ef54d3ffcc5b81469a930a4b1f963cc7b": {
+  "note_id": "sop-warehouse-storage",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "57bd51cd84161c0150cb660d74b57b60c1f08c633c41ed543f65fca5a7f03c95": {
+  "note_id": "policy-record-retention",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "5e9f6ef30034ebd3936f9ce9fca30f41bd08d98d24df1ab455dcba4051ad8133": {
+  "note_id": "policy-access-control",
+  "rules": [],
+  "score": 1.0,
+  "status": "QUARANTINED"
+ },
+ "6ae3820a8d834d8afb46e39bdd154977f8fc706872e0f1c6a07edec1cd7c2e8d": {
+  "note_id": "sop-supplier-qualification",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "7145b0d7ab2a853952aabb1e16f139002e7b109294b38e9d3697212f9b0344d7": {
+  "note_id": "sop-cleaning-validation",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "77f659367f7fce5ce4701e4b08b435979912ba91155c2bce975ea47b6bc15c36": {
+  "note_id": "sop-capa",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "8bfb3f6891b739e3f945e2eef9cb379ee05948d05cba23c7476b7311b8743ed1": {
+  "note_id": "policy-assistant-scope",
+  "rules": [],
+  "score": 1.0,
+  "status": "QUARANTINED"
+ },
+ "9423a13ca6eb09e57ec718a0f743164088172bfb753be0c578c5a90bc43b5e4c": {
+  "note_id": "sop-training",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "9b4d955c8253fd423d364e28f95f182d855f6741cf843036a1d639cc056b39ea": {
+  "note_id": "sop-batch-record-review",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "9e3eeb2f2808e7a4428181b2c7d9ac5de06cb88eb3e05923795f2d673239b5ac": {
+  "note_id": "catalog-sku",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "a34b7ca06940769d8966778962726cb9965699e7d33f59bc2ef07cd611371742": {
+  "note_id": "sop-lot-release",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "a6d66d0c7309befce4c23027adf3bae63ba6e38f47e2799093fa84d1cb14cc87": {
+  "note_id": "policy-hitl-approval",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "a7ba99856e50727cbe86ef376ce502b0c0434a7b913db42f43668c876028abb5": {
+  "note_id": "catalog-lot-numbering",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "a9fc766c14f6b903ec453a1889f1a17249b2ac06a0e895c7dd3d9289a7cc8186": {
+  "note_id": "sop-root-cause",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "b1de99c8b92ee1722ed9d7458f8ca8253d5d4289d3b595e34523502e2779181b": {
+  "note_id": "catalog-product-families",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "b26372dad2c7d349d6edbad11f2a8014e35a08ee1e46501fd96ac890a0498393": {
+  "note_id": "policy-data-integrity",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "cad423cbac8127bfe9cd9474622b8480f3a0f4a6fbc828c788b39a236cc9e7ac": {
+  "note_id": "policy-pii",
+  "rules": [],
+  "score": 0.9964,
+  "status": "QUARANTINED"
+ },
+ "d2c4c90c8417e6ae8accec789d705ac3e5ed1f51db62d88ffc53dbf7892dcef6": {
+  "note_id": "sop-change-control",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "d75d8e11b49f1e426c70a4e7555fd677677a46c6c0a20f1795ba5f4cb61b104d": {
+  "note_id": "acme-escalation",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "d954621d99f2aec0de6dd129bc5541d284b4bfde3ea7eccb2d1f8403bc017499": {
+  "note_id": "acme-sla",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "e259287c3df68a0ff503045965cd2cc2a6ac126adfcbaabffe8b452a510fb870": {
+  "note_id": "policy-audit-trail",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "e9924ad5c40a602a177aeb906381382edf5bac9001dc7bb7058460be22c461d0": {
+  "note_id": "sop-qa-signoff",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "ec44d612d439f42f245a500d5e78a751dfa55cf82e83f4d6fa5be54b39c3abda": {
+  "note_id": "sop-cold-chain",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ },
+ "f0dd3e63975ec9bd96367920a090f89d5f9873c6328636f69d74cc7af690ab7d": {
+  "note_id": "sop-in-process-checks",
+  "rules": [],
+  "score": null,
+  "status": "CLEAN"
+ }
+}

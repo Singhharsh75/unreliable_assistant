@@ -5,6 +5,7 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic>=2.10.0",
     "faiss-cpu",
+    "fastapi>=0.165.0",
     "graphviz",
     "huggingface-hub",
     "mcp",
@@ -22,6 +23,7 @@ dependencies = [
     "rank-bm25",
     "streamlit",
     "tokenizers",
+    "uvicorn>=0.54.0",
 ]
 
 [dependency-groups]

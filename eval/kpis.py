@@ -29,7 +29,8 @@ if str(ROOT) not in sys.path:  # `uv run eval/kpis.py` puts eval/ on the path, n
 
 from pydantic import BaseModel, ConfigDict, Field  # noqa: E402
 
-from contracts.models import ABSTAIN_TEXT, CallContext, Chunk, HybridRetrieveIn, HybridRetrieveOut, LOT_RE, SKU_RE  # noqa: E402
+from contracts.models import (ABSTAIN_TEXT, LOT_RE, SKU_RE, CallContext, Chunk, GraphSubgraphIn,  # noqa: E402
+                              HybridRetrieveIn, HybridRetrieveOut)
 
 EVAL = ROOT / "eval"
 RUNS = EVAL / "runs"
@@ -107,17 +108,6 @@ NOT_BUILT = {
     "KPI-14": "production rate from mcp.client spans (error.code, repairs); no offline traffic to measure",
     "KPI-17": "needs an LLM planner and production traces; only scripted planners exist",
     "KPI-18": "needs an LLM planner and production traces; only scripted planners exist",
-    "KPI-25": "no streaming FastAPI endpoint yet",
-    "KPI-26": "Graphify vault and token counter are Gate 17",
-    "KPI-27": "semantic cache is Gate 17",
-    "KPI-28": "semantic cache is Gate 17",
-    "KPI-29": "token cost export needs the LLM path in production",
-    "KPI-31": "50K-VU load test is Gates 15-16",
-    "KPI-32": "50K-VU load test is Gates 15-16",
-    "KPI-33": "50K-VU load test is Gates 15-16",
-    "KPI-34": "50K-VU load test is Gates 15-16",
-    "KPI-35": "50K-VU load test is Gates 15-16",
-    "KPI-36": "1 h soak test is Gates 15-16",
 }
 
 
@@ -244,6 +234,12 @@ def _live_retrieval(rows: list[dict], pos: list[dict]) -> list[Result]:
 
 
 # --- Agent & Loop ---------------------------------------------------------------------------------------
+
+class _EventIn(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    ctx: CallContext
+    event: dict[str, Any]
+
 
 class _LotIn(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
@@ -448,11 +444,135 @@ def serialization_kpi() -> Result:
     return judge("KPI-30", p95(times), note="500 round trips, 4 chunks of 2,000 chars")
 
 
+# --- Token & Graphify (Gate 17) ----------------------------------------------------------------------------
+
+def token_kpi() -> Result:
+    """KPI-26 on the recorded golden retrievals: the prompt as sent (chunks + pruned subgraph) vs the same prompt
+    with every note the subgraph reaches in full."""
+    from types import SimpleNamespace
+
+    from context.compress import estimate_tokens
+    from mcp_servers.graphify import GRAPH, GraphVault, render
+    from mcp_servers.rag_server import INDEX
+    from triage.orchestrator import build_prompt
+
+    if not (GRAPH.exists() and (INDEX / "chunks.jsonl").exists() and (RUNS / "retrieval.jsonl").exists()):
+        return judge("KPI-26", None, note="needs indexes/graph.json, the RAG index and eval/runs/retrieval.jsonl")
+    by_text = {c["text"]: c["note_id"] for c in read(INDEX / "chunks.jsonl")}
+    vault, sent, raw, n = GraphVault(), 0, 0, 0
+    for r in read(RUNS / "retrieval.jsonl"):
+        notes = list(dict.fromkeys(x for x in map(by_text.get, r["retrieved_contexts"]) if x))[:4]
+        if r["abstain"] or not notes:
+            continue
+        ctx = {**_ctx(), "tenant_id": r.get("tenant_id") or "tenant_demo"}
+        g = vault.subgraph(GraphSubgraphIn.model_validate({"ctx": ctx, "anchor_note_ids": notes}, strict=False))
+        graph = render(g.nodes, g.edges)
+        p = estimate_tokens(build_prompt(r["question"], [SimpleNamespace(text=t) for t in r["retrieved_contexts"]], graph))
+        sent, raw, n = sent + p, raw + p - estimate_tokens(graph) + g.raw_token_estimate, n + 1
+    return judge("KPI-26", 1 - sent / raw if raw else None, source="token counter (build_prompt) on retrieval.jsonl",
+                 note=f"{n} answered golden questions; mean prompt {sent / n:.0f} vs {raw / n:.0f} tokens")
+
+
+def cache_isolation_kpi() -> Result:
+    """KPI-28 concurrency probe: three tenants send the same questions at once through one Orchestrator and one
+    shared cache; each tenant's retrieval returns a chunk naming that tenant. Isolation = share of responses that
+    carry only the caller's tenant."""
+    import hashlib
+
+    from context.cache import AnswerCache
+    from harness import ToolExecutionHarness, ToolSpec
+    from triage import Orchestrator
+
+    tenants = ["tenant_alpha", "tenant_beta", "tenant_gamma"]
+
+    def chunk_for(t: str) -> Chunk:
+        text = f"Complaint investigations for {t} close within {10 + tenants.index(t)} calendar days."
+        h = hashlib.sha256(text.encode()).hexdigest()
+        return Chunk(chunk_hash=h, uri=f"rag://chunks/{h}", text=text, note_id=f"sla-{t}", bm25_score=1.0,
+                     dense_cosine=0.9, rrf_rank=1, rerank_score=0.9)
+
+    class Echo:  # a grounded answer: the chunk itself
+        async def generate(self, query, chunks):
+            await asyncio.sleep(0)
+            return chunks[0].text
+
+    harness = ToolExecutionHarness([
+        ToolSpec("hybrid_retrieve", HybridRetrieveIn, "TIER_1_READ", lambda m: HybridRetrieveOut(
+            chunks=[chunk_for(m.ctx.tenant_id)], top_score=0.9, abstain=False, stage_latency_ms={})),
+        ToolSpec("append_audit", _EventIn, "TIER_1_READ", lambda m: {"seq": 1})])
+    cache = AnswerCache()
+    o = Orchestrator(harness, Echo(), None, cache=cache, chunk_gate=lambda h, t: True)
+    questions = [f"How many days do complaint investigations take for case {i}?" for i in range(20)]
+    jobs = [(t, q) for _ in range(5) for q in questions for t in tenants]
+
+    def ask(t: str, q: str):
+        return o.handle({"tenant_id": t, "user_id": "user_probe", "session_id": str(uuid4()), "query": q},
+                        traceparent=TP, caller_tier="TIER_1_READ")
+
+    async def run():
+        first = len(questions) * len(tenants)  # round 1 fills the cache; rounds 2-5 race on it
+        return (await asyncio.gather(*[ask(t, q) for t, q in jobs[:first]])
+                + await asyncio.gather(*[ask(t, q) for t, q in jobs[first:]]))
+    outs = asyncio.run(run())
+    clean = sum(r["tenant_id"] == t and t in r["answer"] and not any(x in r["answer"] for x in tenants if x != t)
+                for (t, _), r in zip(jobs, outs))
+    if cache.hits == 0:  # without hits the probe never exercised the cache
+        return judge("KPI-28", None, note="probe got no cache hits")
+    return judge("KPI-28", clean / len(jobs), note=f"{len(jobs)} concurrent requests, 3 tenants, {cache.hits} cache "
+                                                   f"hits, {cache.leaks_blocked} egress blocks")
+
+
+def cache_hit_kpi() -> Result:
+    m = json.loads((RUNS / "api_metrics.json").read_text()) if (RUNS / "api_metrics.json").exists() else None
+    seen = f"; last API run saw {m['cache']['hit_ratio']}" if m and m.get("cache") else ""
+    return judge("KPI-27", None, note="steady-state hit ratio needs production traffic; replaying the golden set "
+                                      "measures only the replay" + seen)
+
+
+# --- Scale & Load (Gates 15-16) ------------------------------------------------------------------------------
+
+LOAD_SCALE_VUS = 50_000  # KPI-31..35 are defined at this load; smaller runs are reported, not judged
+
+
+def load_kpis() -> list[Result]:
+    """Reads what load/k6_query.js and load/soak.py wrote (k6_summary.json, soak.json, api_metrics.json)."""
+    out: list[Result] = []
+    m = json.loads((RUNS / "api_metrics.json").read_text()) if (RUNS / "api_metrics.json").exists() else None
+    if m and m.get("generator") == "ClaudeGenerator":
+        out.append(judge("KPI-25", m["llm_ttft_ms"]["p95"], source="GET /metrics llm_ttft_ms (llm.generate ttft_ms)",
+                         note=f"{m['llm_ttft_ms']['n']} streamed answers"))
+    else:
+        out.append(judge("KPI-25", None, note=f"needs a streamed run against Claude; last snapshot used "
+                                              f"{m.get('generator') if m else 'nothing'}"))
+    k = json.loads((RUNS / "k6_summary.json").read_text()) if (RUNS / "k6_summary.json").exists() else None
+    if k is None:
+        out += [judge(kid, None, note="no eval/runs/k6_summary.json; run load/k6_query.js")
+                for kid in ("KPI-31", "KPI-32", "KPI-33", "KPI-34", "KPI-35")]
+    else:
+        lat, at_scale = k["latency_ms"], k["vus_max"] >= LOAD_SCALE_VUS
+        seen = (f"{k['vus_max']} VUs, {k['rps']:.1f} RPS, p50 {lat['med']:.0f} / p95 {lat['p(95)']:.0f} / "
+                f"p99 {lat['p(99)']:.0f} ms, 5xx {k['server_5xx_rate']:.4f}")
+        note = seen if at_scale else f"not at {LOAD_SCALE_VUS:,} VUs; measured {seen}"
+        for kid, v in (("KPI-31", lat["med"]), ("KPI-32", lat["p(95)"]), ("KPI-33", lat["p(99)"]),
+                       ("KPI-34", k["server_5xx_rate"]), ("KPI-35", k["rps"])):
+            out.append(judge(kid, v if at_scale else None, source="eval/runs/k6_summary.json", note=note))
+    s = json.loads((RUNS / "soak.json").read_text()) if (RUNS / "soak.json").exists() else None
+    if s and s["minutes"] >= 55 and s["rss_growth"] is not None:
+        out.append(judge("KPI-36", s["rss_growth"] if s["server_alive"] else 1.0, source="eval/runs/soak.json",
+                         note=f"{s['minutes']} min at {s['vus']} VUs" + ("" if s["server_alive"] else "; server died")))
+    else:
+        out.append(judge("KPI-36", None, note="needs a >= 55 min soak (load/soak.py)"
+                                              + (f"; last run {s['minutes']} min" if s else "")))
+    return out
+
+
 # --- report ------------------------------------------------------------------------------------------------
 
 def measure(live: bool = False) -> list[Result]:
     got = {r.id: r for r in [*triage_kpis(), *guardrail_kpis(), *retrieval_kpis(live), repair_kpi(), chaos_kpi(), hitl_kpi(),
-                             *generation_kpis(), serialization_kpi()]}
+                             *generation_kpis(), serialization_kpi(), *load_kpis(),
+                             token_kpi(), cache_isolation_kpi(), cache_hit_kpi(),
+                             judge("KPI-29", None, note="needs LLM token usage from production traffic")]}
     for kid, why in NOT_BUILT.items():
         got.setdefault(kid, judge(kid, None, note=why))
     assert set(got) == set(BY_ID), set(BY_ID) ^ set(got)

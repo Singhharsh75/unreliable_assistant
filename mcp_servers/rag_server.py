@@ -160,7 +160,7 @@ def build(vault: Path = VAULT, out: Path = INDEX) -> int:
     (out / "chunks.jsonl").write_text("".join(json.dumps(c) + "\n" for c in chunks))
     from guardrails.review import ReviewQueue  # lazy: guardrails.classifier imports this module
 
-    print("injection review:", ReviewQueue(out / "chunk_review.json").scan(chunks))
+    print("injection review:", ReviewQueue().scan(chunks))
     return len(chunks)
 
 
@@ -171,7 +171,7 @@ class Retriever:
         self.dense = faiss.read_index(str(index_dir / "dense.faiss"))
         from guardrails.review import ReviewQueue
 
-        self.review = ReviewQueue(index_dir / "chunk_review.json")
+        self.review = ReviewQueue()
         bi_encoder(), cross_encoder()  # load models before the first request
 
     def _allowed(self, tenant: str | None, domain: str | None) -> np.ndarray:

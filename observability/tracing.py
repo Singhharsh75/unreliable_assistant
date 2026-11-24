@@ -40,7 +40,9 @@ def remote_context(traceparent: str | None) -> otel_context.Context | None:
 def current_traceparent(fallback: str) -> str:
     carrier: dict[str, str] = {}
     _propagator.inject(carrier)
-    return carrier.get("traceparent", fallback)
+    tp = carrier.get("traceparent")
+    # keep only the sampled bit: newer SDKs also set the W3C level-2 random bit (flags 03), which CallContext rejects
+    return f"{tp[:-2]}{int(tp[-2:], 16) & 1:02x}" if tp else fallback
 
 
 @contextmanager

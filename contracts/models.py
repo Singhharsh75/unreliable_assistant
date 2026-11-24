@@ -54,6 +54,22 @@ class HybridRetrieveOut(BaseModel):
     stage_latency_ms: dict[Literal["bm25", "dense", "rrf", "rerank"], float]
 
 
+class GraphSubgraphIn(BaseModel):
+    """design.md §1.2.3: the connected vault subgraph around the anchor notes, within a token budget."""
+    model_config = ConfigDict(strict=True, extra="forbid")
+    ctx: CallContext
+    anchor_note_ids: list[str] = Field(min_length=1, max_length=4)
+    depth: int = Field(default=2, ge=1, le=2)  # hard cap at 2 hops
+    max_tokens: int = Field(default=320, ge=64, le=800)
+
+
+class GraphSubgraphOut(BaseModel):
+    nodes: list[dict]  # {id, domain, risk_tier, version, summary}
+    edges: list[tuple[str, str, str]]  # (src, rel, dst)
+    token_count: int
+    raw_token_estimate: int  # full text of every reachable note: the dump the subgraph replaces (KPI-26)
+
+
 class SessionFact(BaseModel):
     """design.md §1.2.4. Only verified facts are persisted."""
     model_config = ConfigDict(strict=True, extra="forbid")

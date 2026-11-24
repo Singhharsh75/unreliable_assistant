@@ -36,3 +36,19 @@ def test_ir_metrics():
     assert kpis._mrr(["a", "g"], {"g"}) == 0.5
     assert kpis._ndcg(["g", "x"], {"g"}) == 1.0
     assert kpis._ndcg(["x", "g"], {"g"}) < 1.0
+
+
+def test_load_kpis_are_judged_only_at_scale(tmp_path, monkeypatch):
+    import json
+
+    monkeypatch.setattr(kpis, "RUNS", tmp_path)
+    lat = {"med": 100, "p(95)": 200, "p(99)": 300}
+    summary = {"vus_max": 10, "rps": 9000, "latency_ms": lat, "server_5xx_rate": 0.0}
+    (tmp_path / "k6_summary.json").write_text(json.dumps(summary))
+    (tmp_path / "api_metrics.json").write_text(json.dumps({"generator": "StubGenerator", "llm_ttft_ms": {"p95": 1}}))
+    got = {r.id: r for r in kpis.load_kpis()}
+    assert {got[k].status for k in ("KPI-25", "KPI-31", "KPI-35", "KPI-36")} == {"NOT_MEASURED"}
+    assert "measured 10 VUs" in got["KPI-31"].note
+    (tmp_path / "k6_summary.json").write_text(json.dumps({**summary, "vus_max": 50_000}))
+    got = {r.id: r for r in kpis.load_kpis()}
+    assert got["KPI-31"].status == "PASS" and got["KPI-35"].status == "PASS"

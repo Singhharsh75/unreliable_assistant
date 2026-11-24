@@ -1,0 +1,1002 @@
+[
+{
+"q": "What temperature range must temperature-sensitive products be stored in?",
+"t": "tenant_demo"
+},
+{
+"q": "How long can a cold-chain product sit above 8 \u00b0C before the excursion counts as a deviation?",
+"t": "tenant_demo"
+},
+{
+"q": "Within how many hours of detection must a deviation be classified?",
+"t": "tenant_demo"
+},
+{
+"q": "What severity classes are used for deviations?",
+"t": "tenant_demo"
+},
+{
+"q": "What happens to affected lots when a deviation is classified Critical?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the ID format for production lots?",
+"t": "tenant_demo"
+},
+{
+"q": "Can a lot in status HOLD be shipped?",
+"t": "tenant_demo"
+},
+{
+"q": "How long does a reviewer have to decide a PENDING_APPROVAL request before it expires, and what does it expire as?",
+"t": "tenant_demo"
+},
+{
+"q": "What format do product SKUs use?",
+"t": "tenant_demo"
+},
+{
+"q": "Is SKU-120 a refrigerated product?",
+"t": "tenant_demo"
+},
+{
+"q": "Which kinds of personal data are redacted before any processing?",
+"t": "tenant_demo"
+},
+{
+"q": "Which events require a CAPA to be opened?",
+"t": "tenant_demo"
+},
+{
+"q": "How long does QA have to approve a CAPA plan after the root-cause report?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the due date for a Critical CAPA?",
+"t": "tenant_demo"
+},
+{
+"q": "When is the CAPA effectiveness check run?",
+"t": "tenant_demo"
+},
+{
+"q": "When is a root-cause analysis report due?",
+"t": "tenant_demo"
+},
+{
+"q": "Which root-cause analysis methods are approved?",
+"t": "tenant_demo"
+},
+{
+"q": "Who must be on a root-cause analysis team?",
+"t": "tenant_demo"
+},
+{
+"q": "Within how many working days must production review the executed batch record after manufacture ends?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the target cycle time from end of manufacture to a completed batch record review?",
+"t": "tenant_demo"
+},
+{
+"q": "How often is tablet weight checked during manufacture?",
+"t": "tenant_demo"
+},
+{
+"q": "Which in-process checks are standard for liquids, and how often are they done?",
+"t": "tenant_demo"
+},
+{
+"q": "Who is allowed to sign off a lot for release?",
+"t": "tenant_demo"
+},
+{
+"q": "Who can revoke a QA sign-off?",
+"t": "tenant_demo"
+},
+{
+"q": "When does the Change Control Board meet?",
+"t": "tenant_demo"
+},
+{
+"q": "How quickly must an emergency change be documented?",
+"t": "tenant_demo"
+},
+{
+"q": "What format do calibration IDs use?",
+"t": "tenant_demo"
+},
+{
+"q": "How often are pH meters calibrated by default?",
+"t": "tenant_demo"
+},
+{
+"q": "How long does QA have to finish the impact assessment after an instrument fails calibration?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the carry-over acceptance limit for shared equipment cleaning?",
+"t": "tenant_demo"
+},
+{
+"q": "How long is a CLEAN status label on equipment valid?",
+"t": "tenant_demo"
+},
+{
+"q": "Which room grade is used for aseptic filling?",
+"t": "tenant_demo"
+},
+{
+"q": "How often are Grade C rooms sampled for viable air?",
+"t": "tenant_demo"
+},
+{
+"q": "What happens after an alert-level environmental monitoring result?",
+"t": "tenant_demo"
+},
+{
+"q": "How often are approved suppliers re-audited?",
+"t": "tenant_demo"
+},
+{
+"q": "For tenant_acme, how quickly must a Critical deviation affecting its lots be reported to it?",
+"t": "tenant_acme"
+},
+{
+"q": "What status does an incoming delivery get when it is received?",
+"t": "tenant_demo"
+},
+{
+"q": "How many containers are sampled from a delivery of non-active material from an approved supplier?",
+"t": "tenant_demo"
+},
+{
+"q": "Within how many days must rejected incoming material be returned or destroyed?",
+"t": "tenant_demo"
+},
+{
+"q": "What are the three recall classes?",
+"t": "tenant_demo"
+},
+{
+"q": "Who chairs the Recall Committee?",
+"t": "tenant_demo"
+},
+{
+"q": "How often is a mock recall run?",
+"t": "tenant_demo"
+},
+{
+"q": "What format do complaint IDs use?",
+"t": "tenant_demo"
+},
+{
+"q": "How long is allowed for investigating a quality-only complaint?",
+"t": "tenant_demo"
+},
+{
+"q": "Which picking rule is used when shipping orders?",
+"t": "tenant_demo"
+},
+{
+"q": "Within how many hours must a cold-chain shipment arrive?",
+"t": "tenant_demo"
+},
+{
+"q": "What status does returned product get when it arrives?",
+"t": "tenant_demo"
+},
+{
+"q": "What temperature and humidity are room-temperature products stored at?",
+"t": "tenant_demo"
+},
+{
+"q": "How often are warehouse locations temperature-mapped?",
+"t": "tenant_demo"
+},
+{
+"q": "What information must appear on every product label?",
+"t": "tenant_demo"
+},
+{
+"q": "How long is the training window for a new or revised procedure?",
+"t": "tenant_demo"
+},
+{
+"q": "How often are operators requalified on aseptic technique?",
+"t": "tenant_demo"
+},
+{
+"q": "What does ALCOA+ stand for?",
+"t": "tenant_demo"
+},
+{
+"q": "What are the three permission tiers for system actions?",
+"t": "tenant_demo"
+},
+{
+"q": "After how many days without use is an account disabled automatically?",
+"t": "tenant_demo"
+},
+{
+"q": "What does each audit trail entry record?",
+"t": "tenant_demo"
+},
+{
+"q": "How long are shipping and distribution records kept?",
+"t": "tenant_demo"
+},
+{
+"q": "How long are complaint and recall records kept?",
+"t": "tenant_demo"
+},
+{
+"q": "When is a lot number assigned?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the shelf life of SKU-210?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the minimum remaining shelf life tenant_globex accepts on delivered lots?",
+"t": "tenant_globex"
+},
+{
+"q": "At which time points are long-term stability samples tested?",
+"t": "tenant_demo"
+},
+{
+"q": "How long may a Phase I out-of-specification investigation take?",
+"t": "tenant_demo"
+},
+{
+"q": "A lot's batch record review is complete and all in-process checks are within limits, but QA has not signed off yet. Can the lot be released?",
+"t": "tenant_demo"
+},
+{
+"q": "LOT-00044 has one open Minor deviation and every other release requirement is met. Does it pass release verification?",
+"t": "tenant_demo"
+},
+{
+"q": "A refrigerated product is being stored at 1 \u00b0C. Is that within the cold-chain storage range?",
+"t": "tenant_demo"
+},
+{
+"q": "A deviation was detected on Monday at 09:00 and was still unclassified on Wednesday at 09:00. Was the classification deadline met?",
+"t": "tenant_demo"
+},
+{
+"q": "Root-cause analysis for a deviation is finished, but the CAPA has not been approved yet. Can the deviation be closed?",
+"t": "tenant_demo"
+},
+{
+"q": "An approval request was created 30 hours ago and no reviewer has acted on it. What is its status?",
+"t": "tenant_demo"
+},
+{
+"q": "A user asks the assistant to submit a form for them right now. Can the assistant submit it itself?",
+"t": "tenant_demo"
+},
+{
+"q": "SKU-045 was discontinued last year. Can its number be assigned to a new product?",
+"t": "tenant_demo"
+},
+{
+"q": "A user pastes their phone number into a question. May the application log store that message as-is?",
+"t": "tenant_demo"
+},
+{
+"q": "Can the assistant change a lot's status on its own if the user asks politely?",
+"t": "tenant_demo"
+},
+{
+"q": "A Minor deviation with the same root cause has now happened for the third time in 10 months. Is a CAPA required?",
+"t": "tenant_demo"
+},
+{
+"q": "A Major CAPA was opened on 1 March and has no extension. By when is it due?",
+"t": "tenant_demo"
+},
+{
+"q": "The owner of a Critical CAPA already extended its due date once and now asks for a second 30-day extension. Is that allowed?",
+"t": "tenant_demo"
+},
+{
+"q": "A problem comes back 60 days after the last CAPA action was closed. What happens to the CAPA?",
+"t": "tenant_demo"
+},
+{
+"q": "The root-cause analysis for a Critical deviation used only the 5 Whys. Is that acceptable?",
+"t": "tenant_demo"
+},
+{
+"q": "An RCA report concludes only that the operator made a mistake. Is that an acceptable root cause?",
+"t": "tenant_demo"
+},
+{
+"q": "Investigators cannot find a root cause for a Major deviation. How is the report handled?",
+"t": "tenant_demo"
+},
+{
+"q": "During QA's batch record review a recorded value is outside its limit and no document explains it. What must happen?",
+"t": "tenant_demo"
+},
+{
+"q": "Production has reviewed the batch record and every finding is closed, but QA has not signed the review page. Is the batch record review complete?",
+"t": "tenant_demo"
+},
+{
+"q": "A tablet hardness result is out of limits, and the single retest on a fresh sample is within limits. Must the shift supervisor raise a deviation?",
+"t": "tenant_demo"
+},
+{
+"q": "The pH meter used for today's in-process checks is found out of calibration, and its last passing calibration was two weeks ago. Which of its results are valid?",
+"t": "tenant_demo"
+},
+{
+"q": "A Phase I out-of-specification investigation finds no clear laboratory error. What happens next, and how long is allowed?",
+"t": "tenant_demo"
+},
+{
+"q": "A Qualified Person personally manufactured a lot on the night shift. Can that QP sign the lot off?",
+"t": "tenant_demo"
+},
+{
+"q": "The Head of Quality revokes the sign-off on a released lot. What status does the lot get?",
+"t": "tenant_demo"
+},
+{
+"q": "A Moderate change to a product specification is requested. Who approves it?",
+"t": "tenant_demo"
+},
+{
+"q": "An emergency change was made on Friday to protect patient safety. What are the deadlines for documenting and approving it?",
+"t": "tenant_demo"
+},
+{
+"q": "A Major change to a validated process has just been approved. Can the first lot made under it be released right away?",
+"t": "tenant_demo"
+},
+{
+"q": "A balance was last calibrated 7 months ago and has no other interval set. Can it be used?",
+"t": "tenant_demo"
+},
+{
+"q": "An instrument fails calibration. What happens to the lots it measured since its last passing calibration?",
+"t": "tenant_demo"
+},
+{
+"q": "A piece of shared equipment was cleaned 80 hours ago and still carries its CLEAN label. Can the next lot use it?",
+"t": "tenant_demo"
+},
+{
+"q": "For the previous product, 1/1000 of the lowest therapeutic dose works out to 6 ppm carry-over. Which acceptance limit applies?",
+"t": "tenant_demo"
+},
+{
+"q": "A new product is going to be made on shared equipment. What has to happen to the cleaning procedure?",
+"t": "tenant_demo"
+},
+{
+"q": "Differential pressure in a Grade B room drops for 20 minutes during aseptic work. What happens?",
+"t": "tenant_demo"
+},
+{
+"q": "An action-level result is found in a Grade A room while a lot was being filled there. What happens to the result and to the lot?",
+"t": "tenant_demo"
+},
+{
+"q": "A supplier has had 4 rejected deliveries in the last 12 months. What happens to it?",
+"t": "tenant_demo"
+},
+{
+"q": "A new primary packaging supplier has completed the questionnaire and signed a quality agreement. Is it approved?",
+"t": "tenant_demo"
+},
+{
+"q": "An approved supplier had a Critical finding at its last audit. When is its next re-audit due?",
+"t": "tenant_demo"
+},
+{
+"q": "An approved supplier delivers 16 containers of a non-active excipient. How many containers are sampled?",
+"t": "tenant_demo"
+},
+{
+"q": "A delivery of 9 containers of an active ingredient arrives. How many containers are identity-tested?",
+"t": "tenant_demo"
+},
+{
+"q": "A Class II recall is decided on Monday at 10:00. By when must the regulator be notified?",
+"t": "tenant_demo"
+},
+{
+"q": "The Recall Committee decides a product could cause serious harm. Which recall class applies, and how fast must the regulator be told?",
+"t": "tenant_demo"
+},
+{
+"q": "A mock recall took 6 hours to identify every customer who received the lot. Did it meet the target?",
+"t": "tenant_demo"
+},
+{
+"q": "A complaint received on Friday afternoon was logged the following Tuesday. Monday was a normal working day. Was it logged on time?",
+"t": "tenant_demo"
+},
+{
+"q": "SKU-120 received four complaints of the same type in one quarter. What does that trigger?",
+"t": "tenant_demo"
+},
+{
+"q": "A safety-related complaint arrives in the morning. When must the Head of Quality hear about it, and what assessment follows?",
+"t": "tenant_demo"
+},
+{
+"q": "A customer orders a lot with 5 months of shelf life left and has not agreed to that in writing. Can it be shipped?",
+"t": "tenant_demo"
+},
+{
+"q": "A refrigerated product's long-term stability chamber is running at 9 \u00b0C. Is that within the required condition?",
+"t": "tenant_demo"
+},
+{
+"q": "An unopened returned room-temperature product stayed within its storage conditions and has 8 months of shelf life left. Can it go back into stock?",
+"t": "tenant_demo"
+},
+{
+"q": "An unopened refrigerated product comes back with a perfect temperature record. Can it be returned to stock?",
+"t": "tenant_demo"
+},
+{
+"q": "The room-temperature warehouse reads 27 \u00b0C. Is that within limits?",
+"t": "tenant_demo"
+},
+{
+"q": "The annual stock count shows a 0.8% difference for one SKU. What is required?",
+"t": "tenant_demo"
+},
+{
+"q": "1,000 labels were issued; 950 were applied, 40 returned, and 8 destroyed. Does the reconciliation balance, and what follows?",
+"t": "tenant_demo"
+},
+{
+"q": "A label mix-up is discovered after the lot was released. How is it treated?",
+"t": "tenant_demo"
+},
+{
+"q": "A revised procedure became effective on Monday, and an operator who has not been trained on it does the task on Monday. Is that a problem?",
+"t": "tenant_demo"
+},
+{
+"q": "An operator was last requalified on aseptic technique 7 months ago. May they do aseptic work today?",
+"t": "tenant_demo"
+},
+{
+"q": "An operator used correction fluid to fix a wrong weight on a paper record. Is that allowed?",
+"t": "tenant_demo"
+},
+{
+"q": "A record is found to have been backdated. What is the minimum deviation classification?",
+"t": "tenant_demo"
+},
+{
+"q": "An employee left the company on Monday at 09:00. By when must their account be disabled?",
+"t": "tenant_demo"
+},
+{
+"q": "A user wants a report that calculates figures without changing any records. Which tier is that, and does it need human approval?",
+"t": "tenant_demo"
+},
+{
+"q": "A system administrator wants to switch off the audit trail during a data migration. Is that allowed?",
+"t": "tenant_demo"
+},
+{
+"q": "A lot was released in 2020 and expired in 2022. Until when must its batch record be kept?",
+"t": "tenant_demo"
+},
+{
+"q": "The retention period for a set of records has ended, but they are under a legal hold. Can they be destroyed?",
+"t": "tenant_demo"
+},
+{
+"q": "Lot 7 was rejected. Can the number LOT-00007 be given to a new lot?",
+"t": "tenant_demo"
+},
+{
+"q": "What storage temperature applies to SKU-099?",
+"t": "tenant_demo"
+},
+{
+"q": "Releasing a lot of SKU-099 needs which check beyond the standard release verification?",
+"t": "tenant_demo"
+},
+{
+"q": "What has to happen to an open deviation before it stops blocking a lot release?",
+"t": "tenant_demo"
+},
+{
+"q": "A user includes their email address while asking the assistant to release a lot. What happens to the email and to the release request?",
+"t": "tenant_demo"
+},
+{
+"q": "For tenant_acme, where does a quality escalation about a Critical deviation go, and what happens to the affected lots?",
+"t": "tenant_acme"
+},
+{
+"q": "If a refrigerated lot's temperature log shows an excursion above 8 \u00b0C for over half an hour, can the lot still pass release verification?",
+"t": "tenant_demo"
+},
+{
+"q": "A cold-chain product spent 45 minutes at 11 \u00b0C. Is that a deviation, and by when must it be classified?",
+"t": "tenant_demo"
+},
+{
+"q": "SKU-099 was stored at 10 \u00b0C for an hour. Has a deviation occurred?",
+"t": "tenant_demo"
+},
+{
+"q": "What storage conditions apply to SKU-210?",
+"t": "tenant_demo"
+},
+{
+"q": "Within how many hours must a shipment of SKU-305 arrive?",
+"t": "tenant_demo"
+},
+{
+"q": "An unopened case of SKU-305 is returned. Can it go back into stock?",
+"t": "tenant_demo"
+},
+{
+"q": "A Critical deviation has just been classified. By when are the RCA report and the CAPA due?",
+"t": "tenant_demo"
+},
+{
+"q": "An out-of-specification result is confirmed. What follow-up is required, and when is the root-cause report due?",
+"t": "tenant_demo"
+},
+{
+"q": "A 12-month stability result for a lot is outside specification. Who must be told, by when, and how long does the first investigation phase take?",
+"t": "tenant_demo"
+},
+{
+"q": "A balance used for tablet weight checks fails calibration. What happens to the weight results and to the lots?",
+"t": "tenant_demo"
+},
+{
+"q": "An in-process check fails twice in a row and the deviation is classified Major. What has to happen before the deviation can be closed?",
+"t": "tenant_demo"
+},
+{
+"q": "A label reconciliation is two labels short. What is raised, and by when must it be classified?",
+"t": "tenant_demo"
+},
+{
+"q": "Which lot number is printed on the labels for lot 312?",
+"t": "tenant_demo"
+},
+{
+"q": "Can a lot that is still in QUARANTINE be shipped, and how does it leave QUARANTINE?",
+"t": "tenant_demo"
+},
+{
+"q": "A lot is recalled. What status does it get, and where is any remaining stock kept?",
+"t": "tenant_demo"
+},
+{
+"q": "During a recall, how quickly must every customer who received the lot be found, and which records make that possible?",
+"t": "tenant_demo"
+},
+{
+"q": "How long must shipment records be kept, and what are they used for in a recall?",
+"t": "tenant_demo"
+},
+{
+"q": "After a safety-related complaint, the Recall Committee judges the risk to be temporary, reversible harm. Which recall class is it, and when must the regulator be notified?",
+"t": "tenant_demo"
+},
+{
+"q": "How does the complaint investigation deadline for tenant_acme compare with the standard deadline?",
+"t": "tenant_acme"
+},
+{
+"q": "A Critical deviation affects a tenant_acme lot. When must tenant_acme be told, and what happens to the lot?",
+"t": "tenant_acme"
+},
+{
+"q": "Can a lot with 5 months of remaining shelf life be shipped to tenant_globex?",
+"t": "tenant_globex"
+},
+{
+"q": "A shipment of SKU-099 goes to tenant_globex. Within how many hours must it arrive?",
+"t": "tenant_globex"
+},
+{
+"q": "A delivery of 25 containers of excipient arrives from a supplier on conditional status. How many containers are sampled?",
+"t": "tenant_demo"
+},
+{
+"q": "A supplier is being removed from the Approved Supplier List. Which process covers this, and who approves it if it is classified Major?",
+"t": "tenant_demo"
+},
+{
+"q": "A delivery of cold-chain material arrives. What is checked before it goes into storage, and what is its storage range?",
+"t": "tenant_demo"
+},
+{
+"q": "A cold-chain temperature logger fails calibration while a lot that relied on its readings is waiting for release. Can the lot be released now?",
+"t": "tenant_demo"
+},
+{
+"q": "A swab test fails after cleaning shared equipment. What is raised, and how soon must it be classified?",
+"t": "tenant_demo"
+},
+{
+"q": "An action-level environmental result is found in a room where a lot was being filled. How soon must the deviation be classified, and what happens to the lot?",
+"t": "tenant_demo"
+},
+{
+"q": "The Head of Quality revokes a lot's QA sign-off. Can that lot still be shipped?",
+"t": "tenant_demo"
+},
+{
+"q": "QA reviews the audit trail of a lot's electronic records during batch record review. How long must that audit trail be kept?",
+"t": "tenant_demo"
+},
+{
+"q": "During batch record review an unexplained backdated entry is found. What is raised, and what is its minimum classification?",
+"t": "tenant_demo"
+},
+{
+"q": "An RCA finds the operator was never trained on the current version of the procedure. Is that a deviation in its own right, and can human error be given as the root cause?",
+"t": "tenant_demo"
+},
+{
+"q": "A user asks the assistant to start a product recall. What can the assistant do?",
+"t": "tenant_demo"
+},
+{
+"q": "Which permission tier does QA sign-off fall under, and how often are the role assignments behind it reviewed?",
+"t": "tenant_demo"
+},
+{
+"q": "A user asks the assistant to run a stock report and then change a lot's status. Which tier is each request, and which can the assistant do directly?",
+"t": "tenant_demo"
+},
+{
+"q": "Under which condition is SKU-099 stored for long-term stability testing?",
+"t": "tenant_demo"
+},
+{
+"q": "SKU-120 enters the stability program. What temperature and humidity are its long-term samples kept at?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the shelf life of SKU-145, and what is the minimum remaining shelf life for a standard shipment?",
+"t": "tenant_demo"
+},
+{
+"q": "Can the discontinued number SKU-077 be given to a new product, and what format do SKUs use?",
+"t": "tenant_demo"
+},
+{
+"q": "Lot 312 is split into two packaging runs. What lot number is printed on the labels of the second split?",
+"t": "tenant_demo"
+},
+{
+"q": "A change was implemented without an approved change request, and the resulting deviation is classified Major. When are the RCA report and the CAPA due?",
+"t": "tenant_demo"
+},
+{
+"q": "Product returned because of a complaint: how long is it kept, and how long does a quality-only complaint investigation take?",
+"t": "tenant_demo"
+},
+{
+"q": "How long are recall records kept, and how often is the recall process tested?",
+"t": "tenant_demo"
+},
+{
+"q": "How often is a temperature logger used for cold-chain storage calibrated, and what range is it monitoring?",
+"t": "tenant_demo"
+},
+{
+"q": "A lot is filled during an action-level excursion and later passes its impact assessment. Before it can be released, who must sign it off and how is that sign-off recorded?",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the lot release safety protocol.",
+"t": "tenant_demo"
+},
+{
+"q": "Give an overview of how deviations are handled.",
+"t": "tenant_demo"
+},
+{
+"q": "What are the cold-chain storage rules in brief?",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the policy for human approval of Tier 3 actions.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the SKU catalog conventions.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the personal data handling policy.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the CAPA procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Give an overview of how root-cause analysis is done.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the batch record review process.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the in-process check rules.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the QA sign-off rules.",
+"t": "tenant_demo"
+},
+{
+"q": "Give an overview of the change control procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the equipment calibration procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the cleaning and line clearance rules.",
+"t": "tenant_demo"
+},
+{
+"q": "Give an overview of environmental monitoring.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize how suppliers are qualified.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the incoming material inspection procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the product recall procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Give an overview of the recall classes and the regulator notification deadlines.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize how customer complaints are handled.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the shipping and distribution rules.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the returned goods procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the warehouse storage rules.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the label control procedure.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the training and qualification requirements.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the data integrity policy.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the access control policy and permission tiers.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the audit trail policy.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the record retention rules.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the lot numbering conventions.",
+"t": "tenant_demo"
+},
+{
+"q": "Give an overview of the product families in the catalog.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the stability testing program.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize how out-of-specification results are investigated.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize what the assistant is and is not allowed to do.",
+"t": "tenant_demo"
+},
+{
+"q": "Summarize the quality agreement terms for tenant_acme.",
+"t": "tenant_acme"
+},
+{
+"q": "Summarize the shipping exceptions for tenant_globex.",
+"t": "tenant_globex"
+},
+{
+"q": "Summarize the escalation arrangements for tenant_acme.",
+"t": "tenant_acme"
+},
+{
+"q": "What humidity range is required for cold-chain storage?",
+"t": "tenant_demo"
+},
+{
+"q": "Which shipping carrier is approved for refrigerated lots?",
+"t": "tenant_demo"
+},
+{
+"q": "Who is the quality escalation contact for tenant_demo?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the alert level for viable air counts in a Grade B room?",
+"t": "tenant_demo"
+},
+{
+"q": "How many members sit on the Change Control Board?",
+"t": "tenant_demo"
+},
+{
+"q": "Which software system is used to record electronic batch records?",
+"t": "tenant_demo"
+},
+{
+"q": "What was the shelf life of the discontinued SKU-077?",
+"t": "tenant_demo"
+},
+{
+"q": "What storage temperature applies to SKU-500?",
+"t": "tenant_demo"
+},
+{
+"q": "Who is the current Head of Quality?",
+"t": "tenant_demo"
+},
+{
+"q": "What disciplinary action follows a missed CAPA due date?",
+"t": "tenant_demo"
+},
+{
+"q": "How often are the HVAC filters in production rooms replaced?",
+"t": "tenant_demo"
+},
+{
+"q": "How often is pest control inspection done in the warehouse?",
+"t": "tenant_demo"
+},
+{
+"q": "Which regulatory agency is notified of a Class I recall?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the maximum number of lots line 3 can produce per day?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the tablet hardness specification for SKU-210?",
+"t": "tenant_demo"
+},
+{
+"q": "How much does a mock recall cost to run?",
+"t": "tenant_demo"
+},
+{
+"q": "Which disinfectant is used to clean Grade A rooms?",
+"t": "tenant_demo"
+},
+{
+"q": "What score is needed to pass a GMP training assessment?",
+"t": "tenant_demo"
+},
+{
+"q": "How many Qualified Persons does the site employ?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the dissolution specification for Glycobal tablets?",
+"t": "tenant_demo"
+},
+{
+"q": "How long are environmental monitoring records retained?",
+"t": "tenant_demo"
+},
+{
+"q": "Below what temperature is a frozen SKU-305 lot destroyed?",
+"t": "tenant_demo"
+},
+{
+"q": "How long are warehouse CCTV recordings kept?",
+"t": "tenant_demo"
+},
+{
+"q": "What sampling plan is used for finished-product release testing?",
+"t": "tenant_demo"
+},
+{
+"q": "How often does the internal GMP self-inspection program run?",
+"t": "tenant_demo"
+},
+{
+"q": "What shelf-life exception has tenant_globex agreed to?",
+"t": "tenant_demo"
+},
+{
+"q": "How many days does tenant_acme allow for complaint investigations?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the maximum transit time for room-temperature shipments?",
+"t": "tenant_demo"
+},
+{
+"q": "How long can a lot stay in QUARANTINE before it must be rejected?",
+"t": "tenant_demo"
+},
+{
+"q": "Which software tool is approved for fault-tree analysis?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the monthly target for the number of deviations?",
+"t": "tenant_demo"
+},
+{
+"q": "How many weeks of safety stock are kept for SKU-099?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the procedure if the cold room loses power?",
+"t": "tenant_demo"
+},
+{
+"q": "Which laboratory performs the stability testing?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the list price of SKU-145?",
+"t": "tenant_demo"
+},
+{
+"q": "What is the maximum batch size for SKU-120?",
+"t": "tenant_demo"
+},
+{
+"q": "Who is the named contact at the Globex logistics desk?",
+"t": "tenant_demo"
+}
+]
