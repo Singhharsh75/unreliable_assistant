@@ -1,0 +1,50 @@
+{
+ "manifest": {
+  "server": "mcp-state-store",
+  "tools": [
+   {
+    "name": "append_audit",
+    "tier": "TIER_1_READ",
+    "min_caller_tier": "TIER_1_READ",
+    "hitl_gate": false,
+    "input_schema_sha256": "c0d2ae4a197fd14d0795307cfa0b416cbd59f23bd367d7e63c574ec44775a47c"
+   },
+   {
+    "name": "get_approval",
+    "tier": "TIER_1_READ",
+    "min_caller_tier": "TIER_1_READ",
+    "hitl_gate": false,
+    "input_schema_sha256": "60eac6e12cd4169920e11d3f13d812c6ae9ab41e1e7dedbcb32faae8dee6ab7b"
+   },
+   {
+    "name": "get_session_facts",
+    "tier": "TIER_1_READ",
+    "min_caller_tier": "TIER_1_READ",
+    "hitl_gate": false,
+    "input_schema_sha256": "bb29fc94ab5988bd6535579260b781a152cb23d49cd6c4aaa6ad83d9adb80837"
+   },
+   {
+    "name": "lookup_lot",
+    "tier": "TIER_1_READ",
+    "min_caller_tier": "TIER_1_READ",
+    "hitl_gate": false,
+    "input_schema_sha256": "0392d5e1e68a5395d82e1af99f5c2f5aeb6abebe9b0460e1a1f02d0401921a8b"
+   },
+   {
+    "name": "put_session_fact",
+    "tier": "TIER_2_COMPUTE",
+    "min_caller_tier": "TIER_2_COMPUTE",
+    "hitl_gate": false,
+    "input_schema_sha256": "a64e8251957a376b3e77b4dfd1ecec87b10d77eea43b8624a567c7dc7a4ecc2b"
+   },
+   {
+    "name": "submit_transaction",
+    "tier": "TIER_3_MUTATE",
+    "min_caller_tier": "TIER_2_COMPUTE",
+    "hitl_gate": true,
+    "input_schema_sha256": "75ee861aca64833271da3989ec20195faae38a2bb6063d5598255bbb8b1df3d0"
+   }
+  ]
+ },
+ "signature": "dMWMiDeaFYw030cdFsEu5YaQ0GkdM7JRwMkJjU8szijjn22uFXOmk10DEC+Be85gFnFXb/MDP5OA9bcE58A0Cg=="
+}

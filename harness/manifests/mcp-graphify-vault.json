@@ -1,0 +1,15 @@
+{
+ "manifest": {
+  "server": "mcp-graphify-vault",
+  "tools": [
+   {
+    "name": "graph_subgraph",
+    "tier": "TIER_1_READ",
+    "min_caller_tier": "TIER_1_READ",
+    "hitl_gate": false,
+    "input_schema_sha256": "c5536da5dffe0663f883ab71d8f0b32c669715c1f8e1bda2afd1cc1a9c2f7933"
+   }
+  ]
+ },
+ "signature": "WryWyWs2Uci9fkWAPeOf+SvB0t7YMKCQC4hj5qIv1sUys2P3h60T95SlpRjUuaWmm4CJVJY8S9S7CoEo6Rk/Bw=="
+}

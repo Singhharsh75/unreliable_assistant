@@ -558,3 +558,24 @@ The blueprint asks for 12 rows; this draft has 14. Rows 13–14 are additions an
   - KPI-28 is a concurrency probe (300 requests, 3 tenants, one shared cache, tenant-marked chunks). A test proves the probe fails on a cache without tenant isolation.
   - Workbench: the six blueprint tabs, KPI scorecard in Tab 6. Guardrails are shown, not toggled: switching one off is a reviewed code change. ReAct traces wait for the LLM planner; the OTel waterfall belongs in a collector.
 - **Consequences:** KPI-26 measured at 0.574 (669 vs 1,570 tokens over 223 answered golden questions); the subgraph alone is 77% smaller than the notes it replaces. KPI-28 = 1.0 with 240 cache hits.
+
+### ADR-013 — Decisions taken in Gates 7–12 (recorded after the fact)
+- **Context:** Gates 7–12 made several decisions in code and review notes (`docs/gates_7-12_fixes_and_next_steps.md` §5.3) without an ADR.
+- **Decision:**
+  - **Verifier:** the lexical claim check (`triage/verifier.py`, support ≥ 0.8 token overlap, exact numbers and IDs) is the default stopgap. The NLI cross-encoder (`triage/nli.py`) is used when an `entail` scorer is passed, and always for KPI-24.
+  - **Veto outcome:** without NLI, a vetoed draft is replaced by a verbatim quote of the top reranked chunk (it passed the 0.42 cutoff); with NLI, by the abstention text, since an unentailed draft means the context does not answer the question. The ungrounded draft is never released, and the audit keeps its faithfulness so KPI-24 still counts it.
+  - **Bulkheads** count only infrastructure failures (`UPSTREAM_TIMEOUT`, `INTERNAL_ERROR`, `CIRCUIT_OPEN`) toward tripping; validation, RBAC and scope errors are the caller's fault and never open a pool.
+  - **HITL:** a pending Tier 3 request expires as REJECTED after 24 hours. Only the `reviewer` role decides, and never the requester (four-eyes rule); both are enforced in `StateStore.decide`.
+- **Consequences:** These are the current contracts; changing any of them needs a new ADR.
+
+### ADR-014 — Hardening after Gate 18: timeouts, tool-output gate, fuzzing, crescendo, signed manifests
+- **Decision:**
+  - Request timeout `RuntimeConfig.request_timeout_s` (30 s) around the whole route inside the orchestrator, so a timed-out request ends HALTED and is still audited. The ReAct loop keeps its tighter step budgets.
+  - Tool output is scanned by the regex shield before it enters the ReAct prompt; a hit halts the run as INJECTION_BLOCKED. The chunk classifier is not used here: it misreads short structured text.
+  - Red team adds tool-argument fuzzing (198 cases across the state-store tools) and 6 multi-turn crescendo scripts (24 turns), reported by `eval/redteam.py` and asserted in tests. They are not part of KPI-03, so ADR-010's measurement stays comparable.
+  - Signed manifests (`harness/manifest.py`): per server, tool names, tiers, HITL flags and input-schema SHA-256, signed with Ed25519. The public key and manifests are in git; the private key is in `var/` (git-ignored). The API refuses to start on an unsigned or drifted contract.
+  - `graph.json` gains a `code` layer (modules, imports, Pydantic schemas). Prompts still use the vault layer only.
+- **Consequences:**
+  - Fuzzing: 0 crashes, tables intact, audit chain verifies. Finding: `SubmitTransactionIn.payload` is an untyped dict, so oversized, SQL-looking or null `lot_id` values become PENDING_APPROVAL records. SQL is parameterized, so nothing is injected, but reviewers see garbage requests. Fix: per-action payload schemas (open).
+  - Crescendo: 0 of 24 turns succeed end to end; the pre-hook alone stops 1, because late turns read as benign without the conversation. The downstream controls carry this category.
+  - Any change to a tool contract now needs `uv run harness/manifest.py sign` by the key holder.

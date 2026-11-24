@@ -3915,6 +3915,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
+    { name = "cryptography" },
     { name = "faiss-cpu" },
     { name = "fastapi" },
     { name = "graphviz" },
@@ -3946,6 +3947,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "anthropic", specifier = ">=2.10.0" },
+    { name = "cryptography", specifier = ">=50.0.2" },
     { name = "faiss-cpu" },
     { name = "fastapi", specifier = ">=0.165.0" },
     { name = "graphviz" },

@@ -1,0 +1,15 @@
+{
+ "manifest": {
+  "server": "mcp-hybrid-rag",
+  "tools": [
+   {
+    "name": "hybrid_retrieve",
+    "tier": "TIER_1_READ",
+    "min_caller_tier": "TIER_1_READ",
+    "hitl_gate": false,
+    "input_schema_sha256": "191d76770c79b5c2cb9c5b01368e86bb2590910760187d834ab458cc24f904e1"
+   }
+  ]
+ },
+ "signature": "mUmfJX6/my0xalyToSRsmoHSY2rkz4lmqKWRA0+yCatW+2hluY4If5vQnvy9VB3SABQIcMMcsEQWiwid0XLGBQ=="
+}

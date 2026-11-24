@@ -37,7 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
 
     env = {**os.environ, "VUS": str(a.vus), "RAMP": "5s", "DURATION": f"{int(a.minutes * 60)}s", "BASE": a.base}
-    k6 = subprocess.Popen(["k6", "run", "--quiet", "load/k6_query.js"], cwd=ROOT, env=env,
+    # macOS idle sleep pauses everything and k6 then reports the sleep as one 10-minute request; caffeinate -i
+    # holds the machine awake for as long as k6 runs
+    cmd = (["caffeinate", "-i"] if sys.platform == "darwin" else []) + ["k6", "run", "--quiet", "load/k6_query.js"]
+    k6 = subprocess.Popen(cmd, cwd=ROOT, env=env,
                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     t0, samples, alive = time.monotonic(), [], True
     try:

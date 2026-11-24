@@ -7,8 +7,8 @@ skipping notes the caller's tenant may not read, and keeps nodes in hop order wh
 `max_tokens`. The rendered text is what goes into the prompt, so `token_count` is what the prompt pays;
 `raw_token_estimate` is the full text of every reachable note, the dump the subgraph replaces (KPI-26).
 
-shortcut: graphs the vault only, not ./src modules and schemas as the blueprint's `graphify build ./src` does; add
-code nodes if prompts ever need them.
+`build` also writes a `code` layer (Python modules, their project imports, and the Pydantic schemas each defines)
+for the workbench and for tracing which code a contract lives in. Prompts use the vault layer only.
 """
 from __future__ import annotations
 
@@ -45,10 +45,38 @@ def build(vault: Path = VAULT, out: Path = GRAPH) -> dict:
                       "version": str(meta.get("version")), "tenants": meta.get("tenants"),
                       "summary": _LINK.sub(r"\1", first), "tokens": estimate_tokens(body)}
         edges += [(nid, "links_to", dst) for dst in dict.fromkeys(_LINK.findall(body)) if dst in ids and dst != nid]
-    graph = {"nodes": nodes, "edges": edges}
+    graph = {"nodes": nodes, "edges": edges, "code": code_graph()}
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(graph, indent=1) + "\n")
     return graph
+
+
+CODE_DIRS = ("api", "contracts", "context", "guardrails", "harness", "mcp_servers", "observability", "triage", "eval")
+
+
+def code_graph(root: Path = ROOT) -> dict:
+    """Module nodes, `imports` edges between project modules, `defines` edges to BaseModel subclasses."""
+    import ast
+
+    mods = {".".join(p.relative_to(root).with_suffix("").parts): p for d in CODE_DIRS for p in (root / d).rglob("*.py")}
+    mods = {m.removesuffix(".__init__"): p for m, p in mods.items()}
+    nodes, edges = [], set()
+    for mod, path in sorted(mods.items()):
+        tree = ast.parse(path.read_text())
+        nodes.append({"id": mod, "kind": "module", "tokens": estimate_tokens(path.read_text())})
+        for n in ast.walk(tree):
+            if isinstance(n, ast.ImportFrom) and n.module and n.level == 0:
+                targets = [n.module] + [f"{n.module}.{a.name}" for a in n.names]
+            elif isinstance(n, ast.Import):
+                targets = [a.name for a in n.names]
+            else:
+                targets = []
+            edges.update((mod, "imports", t) for t in targets if t in mods and t != mod)
+            if isinstance(n, ast.ClassDef) and any(getattr(b, "id", getattr(b, "attr", "")) == "BaseModel"
+                                                  or getattr(b, "id", "") in {"_In"} for b in n.bases):
+                nodes.append({"id": f"{mod}:{n.name}", "kind": "schema"})
+                edges.add((mod, "defines", f"{mod}:{n.name}"))
+    return {"nodes": nodes, "edges": sorted(edges)}
 
 
 def render(nodes: list[dict], edges: list[tuple[str, str, str]]) -> str:
@@ -94,6 +122,7 @@ class GraphVault:
 if __name__ == "__main__":
     if sys.argv[1:] == ["build"]:
         g = build()
-        print(f"graph: {len(g['nodes'])} notes, {len(g['edges'])} links -> {GRAPH}")
+        print(f"graph: {len(g['nodes'])} notes, {len(g['edges'])} links; code: {len(g['code']['nodes'])} nodes, "
+              f"{len(g['code']['edges'])} edges -> {GRAPH}")
     else:
         print(__doc__)

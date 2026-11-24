@@ -47,6 +47,7 @@ class RuntimeConfig:
     cache_ttl_s: int = 300
     cache_ttl_jitter_s: int = 45
     rag_index: Literal["primary", "replica"] = "primary"
+    request_timeout_s: float = 30.0           # whole request; the ReAct loop has its own tighter step budgets
 
 
 @dataclass(frozen=True)

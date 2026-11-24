@@ -12,6 +12,7 @@ REASONING pass is an iteration of this while-loop, and a repeated observation ha
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from collections import Counter
 from dataclasses import dataclass, field
@@ -124,7 +125,10 @@ class BoundedLoop:
         clock=time.monotonic,
         memory: SessionMemory | None = None,
         fact_extractor: FactExtractor | None = None,
+        observation_gate: Callable[[str], bool] | None = None,
     ) -> None:
+        # tool output -> may it enter the ReAct prompt; a refusal halts the run as INJECTION_BLOCKED
+        self.observation_gate = observation_gate
         self.harness = harness
         self.planner = planner
         self.config = config or LoopConfig()
@@ -211,6 +215,8 @@ class BoundedLoop:
                         timeout=min(cfg.per_step_timeout_s, remaining()),
                     )
                     value = res.value.model_dump(mode="json") if isinstance(res.value, BaseModel) else res.value
+                    if self.observation_gate and not self.observation_gate(json.dumps(value, default=str)):
+                        raise HarnessError(INJECTION_BLOCKED, f"{action.tool} output reads as an instruction")
                     obs = {"tool": action.tool, "ok": True, "result": value}
                     compressed = compress_observation(value)
                 except HarnessError as e:

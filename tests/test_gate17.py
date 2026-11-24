@@ -71,3 +71,12 @@ def test_subgraph_hides_other_tenants_notes():
     assert sub("tenant_demo").nodes == []
     out = sub("tenant_acme")
     assert out.token_count <= 320 and out.raw_token_estimate >= out.token_count
+
+
+def test_code_layer_maps_modules_imports_and_schemas():
+    from mcp_servers.graphify import code_graph
+
+    g = code_graph()
+    ids = {n["id"] for n in g["nodes"]}
+    assert {"triage.orchestrator", "contracts.models:CallContext"} <= ids
+    assert ["triage.orchestrator", "imports", "contracts.models"] in [list(e) for e in g["edges"]]

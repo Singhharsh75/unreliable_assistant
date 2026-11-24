@@ -80,6 +80,7 @@ class _Latency(SpanProcessor):
 
 def build_orchestrator() -> Orchestrator:
     """Composition root: in-process retriever and state store behind the tool harness and its bulkheads."""
+    from harness.manifest import verify as verify_manifest
     from mcp_servers.graphify import GraphVault
     from mcp_servers.rag_server import Retriever
     from mcp_servers.state_store import StateStore
@@ -89,10 +90,14 @@ def build_orchestrator() -> Orchestrator:
         Path(db).parent.mkdir(parents=True, exist_ok=True)
     bulkheads = default_bulkheads()
     retriever, vault = Retriever(), GraphVault()
-    harness = ToolExecutionHarness([
-        ToolSpec("hybrid_retrieve", HybridRetrieveIn, "TIER_1_READ", retriever.retrieve, pool="rag"),
-        ToolSpec("graph_subgraph", GraphSubgraphIn, "TIER_1_READ", vault.subgraph),
-        *StateStore(db).specs()], bulkheads=bulkheads)
+    servers = {
+        "mcp-hybrid-rag": [ToolSpec("hybrid_retrieve", HybridRetrieveIn, "TIER_1_READ", retriever.retrieve, pool="rag")],
+        "mcp-graphify-vault": [ToolSpec("graph_subgraph", GraphSubgraphIn, "TIER_1_READ", vault.subgraph)],
+        "mcp-state-store": StateStore(db).specs(),
+    }
+    for server, specs in servers.items():  # refuse to start on an unsigned or drifted tool contract
+        verify_manifest(server, specs)
+    harness = ToolExecutionHarness([s for specs in servers.values() for s in specs], bulkheads=bulkheads)
     if os.getenv("LLM_STUB"):
         log.warning("LLM_STUB is set: answers come from StubGenerator, not Claude")
         generator: Any = StubGenerator()

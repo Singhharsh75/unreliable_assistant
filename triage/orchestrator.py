@@ -8,6 +8,7 @@ Each subagent reaches tools only through its own ScopedHarness, so the binding i
 """
 from __future__ import annotations
 
+import asyncio
 import functools
 import hashlib
 import json
@@ -161,21 +162,22 @@ class Orchestrator:
         draft_faithfulness: float | None = None  # set only when a draft was vetoed
         cache_hit = False
         try:
-            if blocked:
-                out.update(status="HALTED", answer=SAFE_REFUSAL)
-            elif (canned := canned_response(tri.route)) is not None:
-                out["answer"] = canned
-            elif tri.route == "HYBRID_RAG":
-                hit = self.cache.get(req["tenant_id"], query) if self.cache else None
-                if hit is not None:  # still audited below; a streamed hit goes out as the final event only
-                    out.update({k: hit[k] for k in ("answer", "citations", "abstained", "status", "faithfulness")})
-                    cache_hit = True
+            async with asyncio.timeout(self.config.request_timeout_s):  # a timeout lands in the except below: HALTED
+                if blocked:
+                    out.update(status="HALTED", answer=SAFE_REFUSAL)
+                elif (canned := canned_response(tri.route)) is not None:
+                    out["answer"] = canned
+                elif tri.route == "HYBRID_RAG":
+                    hit = self.cache.get(req["tenant_id"], query) if self.cache else None
+                    if hit is not None:  # still audited below; a streamed hit goes out as the final event only
+                        out.update({k: hit[k] for k in ("answer", "citations", "abstained", "status", "faithfulness")})
+                        cache_hit = True
+                    else:
+                        draft_faithfulness = await self._rag(query, base, caller_tier, out, on_segment)
+                        if self.cache and draft_faithfulness is None:  # vetoed or partial answers are never cached
+                            self.cache.put(req["tenant_id"], query, out)
                 else:
-                    draft_faithfulness = await self._rag(query, base, caller_tier, out, on_segment)
-                    if self.cache and draft_faithfulness is None:  # vetoed or partial answers are never cached
-                        self.cache.put(req["tenant_id"], query, out)
-            else:
-                await self._execute(query, base, caller_tier, out)
+                    await self._execute(query, base, caller_tier, out)
         except Exception as e:  # upstream failure: no draft is released, and the request is still audited
             log.exception("route %s failed", tri.route)
             name = e.name if isinstance(e, HarnessError) else type(e).__name__
@@ -311,7 +313,8 @@ class Orchestrator:
     async def _execute(self, query: str, base: dict[str, Any], tier: Tier, out: dict[str, Any]) -> None:
         if self.planner is None:
             raise RuntimeError("TRANSACTION_EXEC needs a planner")
-        loop = BoundedLoop(self.execution, _VerifiedPlanner(self.planner), self.loop_config, memory=self.memory)  # type: ignore[arg-type]
+        loop = BoundedLoop(self.execution, _VerifiedPlanner(self.planner), self.loop_config, memory=self.memory,  # type: ignore[arg-type]
+                           observation_gate=_tool_output_ok)
         res = await loop.run(query, base_ctx=base, caller_tier=tier)
         pending = next((o["result"] for o in res.observations
                         if o["tool"] == "submit_transaction" and o.get("ok")
@@ -342,6 +345,13 @@ class Orchestrator:
             await self.verification.call("append_audit", {"ctx": _ctx(base), "event": event}, caller_tier="TIER_1_READ")
         except HarnessError as e:  # a lost audit write must not drop the answer; it is logged for the OTel pipeline
             log.error("audit write failed: %s", e)
+
+
+def _tool_output_ok(text: str) -> bool:
+    """Indirect injection through tool output. Regex shield only: the chunk classifier misreads short structured
+    text ("id: sop-returns" scores 0.997), which would halt ordinary lookups."""
+    from guardrails import injection
+    return not injection.scan(text).blocked
 
 
 def _ctx(base: dict[str, Any]) -> dict[str, Any]:
