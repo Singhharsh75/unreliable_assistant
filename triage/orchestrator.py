@@ -351,7 +351,7 @@ def _tool_output_ok(text: str) -> bool:
     """Indirect injection through tool output. Regex shield only: the chunk classifier misreads short structured
     text ("id: sop-returns" scores 0.997), which would halt ordinary lookups."""
     from guardrails import injection
-    return not injection.scan(text).blocked
+    return not injection.scan(text, indirect=True).blocked
 
 
 def _ctx(base: dict[str, Any]) -> dict[str, Any]:

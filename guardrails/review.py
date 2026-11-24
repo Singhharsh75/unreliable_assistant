@@ -63,7 +63,7 @@ class ReviewQueue:
                 continue
             flagged = is_poisoned(c["text"])
             rows[h] = {"status": "QUARANTINED" if flagged else "CLEAN", "note_id": c["note_id"],
-                       "rules": list(injection.scan(c["text"]).hits) if flagged else [],
+                       "rules": list(injection.scan(c["text"], indirect=True).hits) if flagged else [],
                        "score": round(classifier.injection_prob(injection._fold(c["text"])), 4) if flagged else None}
         self._write(rows)
         return {s: sum(r["status"] == s for r in rows.values()) for s in ("CLEAN", "QUARANTINED", *sorted(HUMAN))}

@@ -46,7 +46,7 @@ def is_poisoned(chunk_text: str) -> bool:
     """Indirect injection: retrieved or tool-supplied text that tries to instruct the model. Regex shield, then the
     classifier on the canonicalized text. Fails closed."""
     try:
-        return (injection.scan(chunk_text).blocked
+        return (injection.scan(chunk_text, indirect=True).blocked
                 or classifier.injection_prob(injection._fold(chunk_text)) >= classifier.THRESHOLD)
     except Exception:
         return True

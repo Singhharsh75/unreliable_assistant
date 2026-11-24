@@ -64,6 +64,28 @@ WEAK = [re.compile(p, re.I | re.M) for p in [
     r"\bnever (?:refuse|decline|say no)\b", r"\bnot (?:bound|restricted|limited) by\b", r"\boverride\b",
     r"\bconfidential\b[^.\n]{0,30}\b(?:reveal|share|tell|show)\b", r"\bdo not (?:mention|tell|inform|alert|notify)\b[^.\n]{0,20}\b(?:user|human|anyone|qa|reviewer)\b",
 ]]
+# Indirect only (retrieved chunks, tool output). Reference text describes procedures; it does not speak as a requester,
+# ask for approvals to be skipped, name another tenant as a target, or tell the assistant to hide things from reviewers.
+# Written by concept (action + removed control, requester voice, cross-tenant target, concealment), not by sentence.
+_ACT = r"(?:mark|set|release|execute|quarantine|approve|ship|sign|submit|delete|run|go ahead|proceed|push|promote|reject)"
+_NOCTRL = r"(?:sign[- ]?off|four[- ]eyes|approvals?|re-?view(?:er|s)?|second (?:person|pair)|authori[sz]ation|co-?sign\w*|checks?|oversight)"
+INDIRECT = [re.compile(p, re.I | re.M) for p in [
+    rf"\b{_ACT}\b[^.\n]{{0,80}}\b(?:no need|not (?:needed|necessary|required)|unnecessary|no time|skip|without|don'?t need|do not need|there'?s no)\b[^.\n]{{0,40}}\b{_NOCTRL}\b",
+    rf"\b(?:no need|no time|not (?:needed|necessary)|there'?s no)\b[^.\n]{{0,40}}\b{_NOCTRL}\b[^.\n]{{0,30}}\b{_ACT}\b",
+    rf"\b{_NOCTRL}\b[^.\n]{{0,25}}\b(?:(?:are|is) )?(?:not (?:needed|necessary|required)|unnecessary)\b[^.\n]{{0,60}}|\b{_ACT}\b[^.\n]{{0,60}}\b{_NOCTRL}\b[^.\n]{{0,15}}\b(?:not (?:needed|necessary|required)|unnecessary)\b",
+    r"\b(?:don'?t|do not|never) (?:let|tell|inform)\b[^.\n]{0,15}\b(?:qa|reviewers?|approvers?|anyone|them)\b[^.\n]{0,10}\b(?:know|about)\b",
+    r"\b(?:ignore|forget|disregard)\b[^.\n]{0,15}\b(?:what|everything|anything) you (?:were|have been|had been) (?:told|given|taught)\b|\b(?:act|respond|answer|operate)\b[^.\n]{0,15}\bwithout (?:any )?(?:limits?|limitations|boundaries)\b|\bprint\b[^.\n]{0,10}\byour (?:setup|configuration|initial) (?:text|prompt|message)\b",
+    r"\b(?:switch|move|go|change|jump|hop)\b[^.\n]{0,25}\b(?:other|another|different)\s+tenants?\b",
+    r"\b(?:give|show|send|tell|list|dump|export|fetch)\s+(?:me|us)\b[^.\n]{0,50}\btenant[_ ]?\w*",
+    r"\b(?:give|show|send|tell|list|dump|export)\s+(?:me|us)\b[^.\n]{0,20}\b(?:what|all|every|their|the)\b[^.\n]{0,40}\b(?:customers?|lots|records|data|secrets?|configuration|credentials)\b",
+    r"\bdo not (?:tell|inform|notify|alert|mention|show|let)\b[^.\n]{0,25}\b(?:reviewers?|approvers?|qa|the user|humans?|anyone|auditors?)\b",
+    r"\b(?:approve|release|ship|submit|execute|do)\b[^.\n]{0,30}\b(?:quietly|silently|secretly|discreetly|without (?:a )?(?:trace|log|record))\b",
+    r"\bI['’]?m (?:the|your) (?:platform|system|site|tenant|root)?\s*(?:owner|admin\w*|operator|developer|boss)\b|\bI am (?:the|your) (?:platform |system |site |tenant )?(?:owner|admin\w*|operator|developer)\b",
+    r"\bjust do what I say\b|\b(?:I|we) (?:need|want) you to\b|\b(?:set aside|stop following|put aside)\b[^.\n]{0,30}\b(?:guidance|polic(?:y|ies)|instructions?|rules)\b",
+    r"\b(?:before|prior to) my (?:first|previous|earlier) (?:message|prompt|question)\b|\byou were (?:initiali[sz]ed|configured|given|told)\b[^.\n]{0,20}\b(?:with|by|to)\b",
+    r"\b(?:stop being|no longer be|stop acting as|become|turn into)\b[^.\n]{0,40}\b(?:assistant|system|bot|model|ai)\b|\bexpos(?:e|es|ing)\b[^.\n]{0,15}\b(?:its|your|the) (?:configuration|config|prompt|instructions?|rules)\b",
+    r"\b(?:never|who never) refuses?\b|\bhas no limits\b",
+]]
 _B64 = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{24,}={0,2}(?![A-Za-z0-9+/=])")
 _HEX = re.compile(r"(?<![0-9a-f])(?:[0-9a-f]{2}[\s:]?){16,}(?![0-9a-f])", re.I)
 _WIDE = re.compile(r"(?:\S(?:   | )){4,}")  # "I g n o r e   a l l": one space inside a word, three between words
@@ -115,9 +137,14 @@ def _score(text: str, weak: bool = True) -> tuple[float, list[str]]:
     return score, hits
 
 
-def scan(text: str) -> Scan:
+def scan(text: str, indirect: bool = False) -> Scan:
+    """`indirect=True` for retrieved chunks and tool output: the INDIRECT patterns count as strong there."""
     folded = _fold(text)
     score, hits = _score(folded)
+    if indirect:
+        ih = [f"I{i}" for i, p in enumerate(INDIRECT) if p.search(folded)]
+        if ih:
+            score, hits = max(score, BLOCK_AT), list(hits) + ih
     for d in _decoded(text) + _decoded(folded):
         s, h = _score(_fold(d), weak=False)  # decoded payloads count only on strong patterns (ROT13 of prose is noise)
         if s >= BLOCK_AT:

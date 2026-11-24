@@ -1,0 +1,12 @@
+{
+ "judge": "anthropic/claude-sonnet-5.5",
+ "answerable_drafts": 198,
+ "released": 161,
+ "vetoed": 37,
+ "claims": 548,
+ "unsupported": 1,
+ "rate": 0.0018248175182481751,
+ "unsupported_sentences": [
+  "complex_reasoning-012: The chunks do not state the date arithmetic or whether the 60 days count from the opening date, so the due date cannot be determined from them."
+ ]
+}

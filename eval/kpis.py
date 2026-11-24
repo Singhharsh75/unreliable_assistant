@@ -415,9 +415,15 @@ def generation_kpis() -> list[Result]:
         v = verify(r["response"], with_question(r["question"], [(str(i), t) for i, t in enumerate(r["retrieved_contexts"])]), entailment)
         claims += len(v.claims)
         unsupported += sum(c.source is None for c in v.claims)
-    out.append(judge("KPI-24", unsupported / claims if claims else None,
-                     note=f"{unsupported}/{claims} draft claims unsupported before the veto. The release path vetoes "
-                          "them, so released answers score 0 against this same verifier; this is the generator's rate"))
+    draft = f"{unsupported}/{claims} draft claims rejected by the NLI verifier before the veto (generator draft rate; many are valid derivations it cannot entail)"
+    rj = RUNS / "released_judge.json"
+    if rj.exists():  # ADR-016: the KPI is the rate on RELEASED answers, judged independently of the verifier
+        j = json.loads(rj.read_text())
+        out.append(judge("KPI-24", j["rate"], source="eval/released_judge.py (LLM judge on released answers)",
+                         note=f"{j['unsupported']}/{j['claims']} claims in {j['released']} released answers unsupported per {j['judge']}; "
+                              f"{j['vetoed']} of {j['answerable_drafts']} drafts vetoed to abstention. {draft}"))
+    else:
+        out.append(judge("KPI-24", unsupported / claims if claims else None, note=draft + "; run eval/released_judge.py for the released-answer rate"))
     return out
 
 

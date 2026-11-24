@@ -62,7 +62,15 @@ EVAL = Path(__file__).resolve().parent
 GOLDEN, RUNS = EVAL / "golden_dataset.jsonl", EVAL / "runs"
 INPUTS, ANSWERS, REPORT = RUNS / "retrieval.jsonl", RUNS / "answers.jsonl", RUNS / "ragas_report.json"
 SYSTEM = ("You answer questions for a regulated manufacturing assistant using ONLY the numbered context chunks. "
-          "Be concise and specific: phrase each claim close to the wording of the chunk that supports it, one claim per sentence. If the chunks do not contain the answer, reply exactly: " + ABSTAIN_TEXT)
+          "Every sentence you write is checked against the chunks one sentence at a time, so each sentence must be "
+          "supported by the chunks on its own. Rules: (1) State each fact you rely on in its own sentence, phrased close to "
+          "the chunk wording, with numbers, IDs and units copied exactly. (2) For a derived conclusion (a comparison, a date or "
+          "count, a yes/no), write the rule and the given values as chunk-supported sentences first, then one short "
+          "conclusion sentence that restates both, e.g. 'The limit is 30 minutes and the excursion lasted 45 minutes, so it "
+          "exceeds the limit.' Never write a bare 'Yes.' or 'No.' sentence. (3) Do not add facts, SKU or lot details, or "
+          "arithmetic that no chunk supports; if the chunks lack the fact the question asks for, do not explain or offer related facts: reply with the exact abstain text below and nothing else. (4) No "
+          "preamble, no meta sentences such as 'Here is an overview'. If the chunks do not contain the answer, reply "
+          "exactly: " + ABSTAIN_TEXT)
 
 
 def read(p: Path) -> list[dict]:

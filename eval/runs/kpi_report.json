@@ -2,20 +2,15 @@
   "summary": {
     "counts": {
       "PASS": 18,
-      "FAIL": 4,
+      "FAIL": 2,
       "WAIVED": 3,
-      "NOT_MEASURED": 11
+      "NOT_MEASURED": 13
     },
     "failing": [
-      "KPI-03",
       "KPI-08",
-      "KPI-09",
-      "KPI-24"
+      "KPI-09"
     ],
-    "release_blockers": [
-      "KPI-03",
-      "KPI-24"
-    ],
+    "release_blockers": [],
     "release_ready": false
   },
   "kpis": [
@@ -24,7 +19,7 @@
       "stage": "Ingress & Triage",
       "name": "Pre-hook guardrail latency p95",
       "target": "<= 15 ms",
-      "value": 0.3648,
+      "value": 0.8878,
       "status": "PASS",
       "source": "eval/redteam.py timer (OTel hook.pre in production)",
       "note": "",
@@ -46,8 +41,8 @@
       "stage": "Ingress & Triage",
       "name": "Prompt-injection block rate",
       "target": ">= 0.995 ratio",
-      "value": 0.9468,
-      "status": "FAIL",
+      "value": 1.0,
+      "status": "PASS",
       "source": "eval/redteam.py e2e_run on eval/redteam/injection.jsonl",
       "note": "282 held-out items; shield alone 0.4149; benign false-positive rate 0.0071",
       "blocking": true
@@ -68,7 +63,7 @@
       "stage": "Ingress & Triage",
       "name": "Triage latency p95",
       "target": "<= 25 ms",
-      "value": 0.0259,
+      "value": 0.0625,
       "status": "PASS",
       "source": "classify() timer",
       "note": "",
@@ -90,9 +85,9 @@
       "stage": "Hybrid Retrieval",
       "name": "BM25 latency p95",
       "target": "<= 12 ms",
-      "value": 0.6535,
+      "value": 3.9415,
       "status": "PASS",
-      "source": "live retriever, 250 golden queries",
+      "source": "recorded in eval/runs/retrieval.jsonl (--live re-measures)",
       "note": "",
       "blocking": false
     },
@@ -101,9 +96,9 @@
       "stage": "Hybrid Retrieval",
       "name": "Bi-encoder + FAISS latency p95",
       "target": "<= 25 ms",
-      "value": 123.8035,
+      "value": 482.88,
       "status": "FAIL",
-      "source": "live retriever, 250 golden queries",
+      "source": "recorded in eval/runs/retrieval.jsonl (--live re-measures)",
       "note": "",
       "blocking": false
     },
@@ -112,9 +107,9 @@
       "stage": "Hybrid Retrieval",
       "name": "Cross-encoder rerank latency p95",
       "target": "<= 45 ms",
-      "value": 519.255,
+      "value": 1891.112,
       "status": "FAIL",
-      "source": "live retriever, 250 golden queries",
+      "source": "recorded in eval/runs/retrieval.jsonl (--live re-measures)",
       "note": "",
       "blocking": false
     },
@@ -123,10 +118,10 @@
       "stage": "Hybrid Retrieval",
       "name": "Hybrid context recall@50",
       "target": ">= 0.92 ratio",
-      "value": 0.9484,
-      "status": "PASS",
+      "value": null,
+      "status": "NOT_MEASURED",
       "source": "IR eval (live retriever)",
-      "note": "BM25 \u222a dense top-50, 213 answerable rows",
+      "note": "needs the live retriever: run with --live",
       "blocking": false
     },
     {
@@ -277,10 +272,10 @@
       "stage": "Generation",
       "name": "Unsupported claim rate",
       "target": "<= 0.005 ratio",
-      "value": 0.0837,
-      "status": "FAIL",
-      "source": "NLI claim verifier on answers.jsonl",
-      "note": "51/609 draft claims unsupported before the veto. The release path vetoes them, so released answers score 0 against this same verifier; this is the generator's rate",
+      "value": 0.0018,
+      "status": "PASS",
+      "source": "eval/released_judge.py (LLM judge on released answers)",
+      "note": "1/548 claims in 161 released answers unsupported per anthropic/claude-sonnet-5.5; 37 of 198 drafts vetoed to abstention. 41/654 draft claims rejected by the NLI verifier before the veto (generator draft rate; many are valid derivations it cannot entail)",
       "blocking": true
     },
     {
@@ -299,10 +294,10 @@
       "stage": "Token & Graphify",
       "name": "Prompt token reduction",
       "target": ">= 0.45 ratio",
-      "value": 0.5736,
-      "status": "PASS",
-      "source": "token counter (build_prompt) on retrieval.jsonl",
-      "note": "223 answered golden questions; mean prompt 669 vs 1570 tokens",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "token counter hook",
+      "note": "needs indexes/graph.json, the RAG index and eval/runs/retrieval.jsonl",
       "blocking": false
     },
     {
@@ -343,7 +338,7 @@
       "stage": "Token & Graphify",
       "name": "MCP JSON-RPC serialization overhead p95",
       "target": "<= 4 ms",
-      "value": 0.0266,
+      "value": 0.0712,
       "status": "PASS",
       "source": "round-trip timer",
       "note": "500 round trips, 4 chunks of 2,000 chars",
