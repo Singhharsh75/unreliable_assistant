@@ -1,10 +1,10 @@
 {
   "summary": {
     "counts": {
-      "PASS": 18,
+      "PASS": 19,
       "FAIL": 2,
       "WAIVED": 3,
-      "NOT_MEASURED": 13
+      "NOT_MEASURED": 12
     },
     "failing": [
       "KPI-08",
@@ -19,7 +19,7 @@
       "stage": "Ingress & Triage",
       "name": "Pre-hook guardrail latency p95",
       "target": "<= 15 ms",
-      "value": 0.8878,
+      "value": 0.9038,
       "status": "PASS",
       "source": "eval/redteam.py timer (OTel hook.pre in production)",
       "note": "",
@@ -63,7 +63,7 @@
       "stage": "Ingress & Triage",
       "name": "Triage latency p95",
       "target": "<= 25 ms",
-      "value": 0.0625,
+      "value": 0.0729,
       "status": "PASS",
       "source": "classify() timer",
       "note": "",
@@ -85,9 +85,9 @@
       "stage": "Hybrid Retrieval",
       "name": "BM25 latency p95",
       "target": "<= 12 ms",
-      "value": 3.9415,
+      "value": 1.2,
       "status": "PASS",
-      "source": "recorded in eval/runs/retrieval.jsonl (--live re-measures)",
+      "source": "live retriever, 250 golden queries",
       "note": "",
       "blocking": false
     },
@@ -96,9 +96,9 @@
       "stage": "Hybrid Retrieval",
       "name": "Bi-encoder + FAISS latency p95",
       "target": "<= 25 ms",
-      "value": 482.88,
+      "value": 261.7485,
       "status": "FAIL",
-      "source": "recorded in eval/runs/retrieval.jsonl (--live re-measures)",
+      "source": "live retriever, 250 golden queries",
       "note": "",
       "blocking": false
     },
@@ -107,9 +107,9 @@
       "stage": "Hybrid Retrieval",
       "name": "Cross-encoder rerank latency p95",
       "target": "<= 45 ms",
-      "value": 1891.112,
+      "value": 1006.8685,
       "status": "FAIL",
-      "source": "recorded in eval/runs/retrieval.jsonl (--live re-measures)",
+      "source": "live retriever, 250 golden queries",
       "note": "",
       "blocking": false
     },
@@ -118,10 +118,10 @@
       "stage": "Hybrid Retrieval",
       "name": "Hybrid context recall@50",
       "target": ">= 0.92 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
+      "value": 0.9484,
+      "status": "PASS",
       "source": "IR eval (live retriever)",
-      "note": "needs the live retriever: run with --live",
+      "note": "BM25 \u222a dense top-50, 213 answerable rows",
       "blocking": false
     },
     {
@@ -338,7 +338,7 @@
       "stage": "Token & Graphify",
       "name": "MCP JSON-RPC serialization overhead p95",
       "target": "<= 4 ms",
-      "value": 0.0712,
+      "value": 0.0543,
       "status": "PASS",
       "source": "round-trip timer",
       "note": "500 round trips, 4 chunks of 2,000 chars",

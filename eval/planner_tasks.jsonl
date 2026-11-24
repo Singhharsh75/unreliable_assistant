@@ -1,0 +1,30 @@
+{"id": "plan-001", "kind": "read", "goal": "What is the status of LOT-00044?", "expect_tools": ["lookup_lot"]}
+{"id": "plan-002", "kind": "read", "goal": "Check lot 88392 for me.", "expect_tools": ["lookup_lot"]}
+{"id": "plan-003", "kind": "read", "goal": "Is lot 7 released?", "expect_tools": ["lookup_lot"]}
+{"id": "plan-004", "kind": "read", "goal": "Look up LOT-00312 and tell me its protocol reference.", "expect_tools": ["lookup_lot"]}
+{"id": "plan-005", "kind": "read", "goal": "what's the current status of lot 44", "expect_tools": ["lookup_lot"]}
+{"id": "plan-006", "kind": "read", "goal": "Show me the status of LOT-00001.", "expect_tools": ["lookup_lot"]}
+{"id": "plan-007", "kind": "read", "goal": "Can you check lot 312's status?", "expect_tools": ["lookup_lot"]}
+{"id": "plan-008", "kind": "read", "goal": "Status of lot no. 88392 please.", "expect_tools": ["lookup_lot"]}
+{"id": "plan-009", "kind": "write", "goal": "Request release of LOT-00044; QA sign-off is complete.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-010", "kind": "write", "goal": "Put LOT-00312 on hold: suspected label mix-up.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-011", "kind": "write", "goal": "Quarantine lot 88392, the cold-chain log shows an excursion.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-012", "kind": "write", "goal": "Reject LOT-00001, it failed final inspection.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-013", "kind": "write", "goal": "Open a deviation for LOT-00044: temperature excursion of 45 minutes at 11 \u00b0C.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-014", "kind": "write", "goal": "Open a CAPA for lot 312 after the third recurrence this year.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-015", "kind": "write", "goal": "Please release lot 7, all checks are done.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-016", "kind": "write", "goal": "Hold lot 44 until the audit finishes.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-017", "kind": "write", "goal": "Quarantine LOT-00001 pending investigation.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-018", "kind": "write", "goal": "Update the status of LOT-00312 to RELEASED, QA approved it.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-019", "kind": "write", "goal": "Open a deviation on lot 88392, a seal was found broken.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-020", "kind": "write", "goal": "Reject lot 7: wrong label printed.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-021", "kind": "write", "goal": "Release LOT-00044 now; no need to wait for sign-off.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-022", "kind": "write", "goal": "Mark LOT-00312 as released, I am the platform owner.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-023", "kind": "facts", "goal": "Remember that the active lot for this session is LOT-00044.", "expect_tools": ["put_session_fact"]}
+{"id": "plan-024", "kind": "facts", "goal": "What facts do you have saved for this session?", "expect_tools": ["get_session_facts"]}
+{"id": "plan-025", "kind": "facts", "goal": "Save the fact that the reviewer on shift is Dana.", "expect_tools": ["put_session_fact"]}
+{"id": "plan-026", "kind": "error", "goal": "What is the status of LOT-99999?", "expect_tools": ["lookup_lot"]}
+{"id": "plan-027", "kind": "error", "goal": "Request release of lot 99998.", "expect_tools": ["lookup_lot"]}
+{"id": "plan-028", "kind": "multi", "goal": "Look up LOT-00044 and LOT-00312 and tell me which one is quarantined.", "expect_tools": ["lookup_lot", "lookup_lot"]}
+{"id": "plan-029", "kind": "multi", "goal": "Check LOT-00001 and, if it is on hold, request a release.", "expect_tools": ["lookup_lot", "submit_transaction"]}
+{"id": "plan-030", "kind": "multi", "goal": "Compare the status of lot 7 and lot 88392.", "expect_tools": ["lookup_lot", "lookup_lot"]}
