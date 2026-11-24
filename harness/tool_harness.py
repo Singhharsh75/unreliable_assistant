@@ -21,6 +21,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ValidationError
 
+from harness.bulkhead import Bulkhead
+from observability.tracing import span
 from harness.errors import (
     AUTO_REPAIR_FAILED,
     HITL_REQUIRED,
@@ -37,8 +39,9 @@ METHOD_NOT_FOUND = -32601
 
 # Whole-value rewrites only. Free text is never touched, so a query that merely mentions a lot is unaffected.
 _REPAIR_RULES: list[tuple[re.Pattern[str], Callable[[re.Match[str]], str]]] = [
-    (re.compile(r"^\s*lot[\s-]*([0-9]{1,5})\s*$", re.IGNORECASE), lambda m: f"LOT-{int(m.group(1)):05d}"),
-    (re.compile(r"^\s*sku[\s-]*([0-9]{1,3})\s*$", re.IGNORECASE), lambda m: f"SKU-{int(m.group(1)):03d}"),
+    # separators an LLM writes: space, dash, underscore, colon, "no." ("LOT_00044", "lot no. 44", "SKU: 99")
+    (re.compile(r"^\s*lot[\s_:-]*(?:no\.?\s*)?([0-9]{1,5})\s*$", re.IGNORECASE), lambda m: f"LOT-{int(m.group(1)):05d}"),
+    (re.compile(r"^\s*sku[\s_:-]*(?:no\.?\s*)?([0-9]{1,3})\s*$", re.IGNORECASE), lambda m: f"SKU-{int(m.group(1)):03d}"),
 ]
 
 
@@ -52,6 +55,8 @@ class ToolSpec:
     min_caller_tier: Tier | None = None
     # True only for the entry point that writes PENDING_APPROVAL (submit_transaction). Other Tier 3 tools never run directly.
     hitl_gate: bool = False
+    # Bulkhead pool the handler runs in ("rag", "db", "llm"). Ignored when the harness has no bulkheads.
+    pool: str | None = None
 
     def __post_init__(self) -> None:
         if "ctx" not in self.input_model.model_fields:
@@ -104,6 +109,7 @@ def repair_ids(obj: Any, path: str = "$") -> tuple[Any, list[dict[str, str]]]:
 @dataclass
 class ToolExecutionHarness:
     tools: Iterable[ToolSpec]
+    bulkheads: dict[str, Bulkhead] = field(default_factory=dict)
     _specs: dict[str, ToolSpec] = field(init=False, default_factory=dict)
     # (tenant_id, idempotency_key) -> (args_digest, result). Successful calls only.
     _results: dict[tuple[str, str], tuple[str, Any]] = field(init=False, default_factory=dict)
@@ -113,10 +119,18 @@ class ToolExecutionHarness:
         for spec in self.tools:
             if spec.name in self._specs:
                 raise ValueError(f"duplicate tool {spec.name}")
+            if self.bulkheads and spec.pool and spec.pool not in self.bulkheads:
+                raise ValueError(f"{spec.name}: unknown bulkhead pool {spec.pool!r}")
             self._specs[spec.name] = spec
 
     async def call(self, tool: str, payload: dict[str, Any], *, caller_tier: Tier) -> CallResult:
         spec = self._specs.get(tool)
+        with span("mcp.client", tool=tool, pool=spec.pool if spec else None, caller_tier=caller_tier) as s:
+            res = await self._call(spec, tool, payload, caller_tier)
+            s.set_attribute("replayed", res.replayed)
+            return res
+
+    async def _call(self, spec: ToolSpec | None, tool: str, payload: dict[str, Any], caller_tier: Tier) -> CallResult:
         if spec is None:
             raise HarnessError(METHOD_NOT_FOUND, f"unknown tool {tool!r}")
         if not isinstance(payload, dict):
@@ -152,8 +166,11 @@ class ToolExecutionHarness:
                     )
                 return CallResult(value=cached_value, replayed=True, repairs=tuple(repairs))
 
+            pool = self.bulkheads.get(spec.pool) if spec.pool else None
             try:
-                if inspect.iscoroutinefunction(spec.handler):
+                if pool is not None:
+                    value = await pool.run(spec.handler, model)
+                elif inspect.iscoroutinefunction(spec.handler):
                     value = await spec.handler(model)
                 else:
                     value = await asyncio.to_thread(spec.handler, model)

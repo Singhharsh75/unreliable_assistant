@@ -37,6 +37,7 @@ from ragas.llms import BaseRagasLLM
 from ragas.metrics import ContextEntityRecall, Faithfulness, ResponseRelevancy
 from ragas.run_config import RunConfig
 
+from contracts.models import ABSTAIN_TEXT
 from eval.build_golden import quotas
 from mcp_servers.rag_server import Retriever, _demo_req, embed
 
@@ -57,7 +58,6 @@ DEFAULT_SAMPLE, SEED = 50, 7
 # Blueprint targets: faithfulness 0.92, relevancy 0.90, ID precision 0.88, ID recall 0.85, entity recall 0.85.
 GATES = {"faithfulness": 0.737, "answer_relevancy": 0.688, "id_context_precision": 0.785,
          "id_context_recall": 0.764, "context_entity_recall": 0.453}
-ABSTAIN_TEXT = "The knowledge base does not cover this question."
 EVAL = Path(__file__).resolve().parent
 GOLDEN, RUNS = EVAL / "golden_dataset.jsonl", EVAL / "runs"
 INPUTS, ANSWERS, REPORT = RUNS / "retrieval.jsonl", RUNS / "answers.jsonl", RUNS / "ragas_report.json"

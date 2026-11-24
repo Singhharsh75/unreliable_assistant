@@ -30,6 +30,7 @@ from rank_bm25 import BM25Okapi
 from tokenizers import Tokenizer
 
 from contracts.models import Chunk, HybridRetrieveIn, HybridRetrieveOut
+from observability.tracing import parent_context, span
 
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.getenv("RAG_VAULT", ROOT / "knowledge_vault"))
@@ -46,6 +47,7 @@ BM25_K1, BM25_B, EF_SEARCH, HNSW_M, RRF_POOL, BATCH = 1.25, 0.75, 64, 32, 40, 32
 RERANK_POOL = int(os.getenv("RAG_RERANK_POOL", "16"))
 SCHEMA_VALIDATION_FAILED, TENANT_SCOPE_VIOLATION = -32001, -32005  # design.md §1.2.5
 audit = logging.getLogger("rag.audit")
+_SPAN = {"dense": "biencoder"}  # design.md §1.4 span name for the dense stage
 
 _stem = PorterStemmer().stem
 POOL = ThreadPoolExecutor(max_workers=2)  # BM25 and dense run in parallel
@@ -188,11 +190,13 @@ class Retriever:
     def retrieve(self, req: HybridRetrieveIn) -> HybridRetrieveOut:
         allowed = self._allowed(req.ctx.tenant_id, req.domain)
         lat = {}
+        parent = parent_context(req.ctx.traceparent)  # captured here: POOL threads do not inherit the context
 
         def timed(name, fn, *args):
-            t0 = time.perf_counter()
-            res = fn(*args)
-            lat[name] = (time.perf_counter() - t0) * 1000
+            with span(f"mcp.rag.{_SPAN.get(name, name)}", context=parent, tenant_id=req.ctx.tenant_id):
+                t0 = time.perf_counter()
+                res = fn(*args)
+                lat[name] = (time.perf_counter() - t0) * 1000
             return res
 
         f_sparse = POOL.submit(timed, "bm25", self._bm25, req.query, req.bm25_top_k, allowed)

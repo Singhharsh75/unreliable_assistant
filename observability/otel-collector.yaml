@@ -1,0 +1,28 @@
+# Gate 10: OTel Collector (contrib) pipeline. App -> OTLP/HTTP :4318 -> Tempo (traces) + spanmetrics -> Prometheus.
+# Run the app with OTEL_EXPORTER_OTLP_ENDPOINT=http://<collector>:4318. Grafana reads Tempo and Prometheus.
+receivers:
+  otlp:
+    protocols:
+      http: {endpoint: 0.0.0.0:4318}
+connectors:
+  spanmetrics:  # latency histograms per span name: p95 for KPI-01/05/07/08/09/25 and the latency-breach alert
+    histogram:
+      explicit: {buckets: [5ms, 10ms, 15ms, 25ms, 45ms, 90ms, 150ms, 180ms, 250ms, 450ms, 550ms, 600ms, 1s]}
+    dimensions: [{name: route}, {name: tool}, {name: pool}, {name: error.code}]
+processors:
+  batch: {}
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls: {insecure: true}
+  prometheus:
+    endpoint: 0.0.0.0:8889
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, spanmetrics]
+    metrics:
+      receivers: [spanmetrics]
+      exporters: [prometheus]

@@ -9,6 +9,8 @@ USER_RE = r"^user_[a-z0-9]{1,64}$"
 SKU_RE = r"^SKU-\d{3}$"
 LOT_RE = r"^LOT-\d{5}$"
 CHUNK_RE = r"^[a-f0-9]{64}$"
+# Deterministic abstention (design.md §1.3 step 5): shared by the runtime and the eval so both score the same string.
+ABSTAIN_TEXT = "The knowledge base does not cover this question."
 
 Tier = Literal["TIER_1_READ", "TIER_2_COMPUTE", "TIER_3_MUTATE"]
 
@@ -58,3 +60,40 @@ class SessionFact(BaseModel):
     key: str = Field(pattern=r"^[a-z_]{1,64}$")
     value: str = Field(max_length=512)
     source_chunk_hash: str | None = Field(default=None, pattern=CHUNK_RE)
+
+
+# --- mcp-state-store inputs (design.md §1.2.4) ------------------------------------
+
+class _In(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    ctx: CallContext
+
+
+TransactionAction = Literal["release", "quarantine", "hold", "reject", "open_deviation", "open_capa", "update_status"]
+ApprovalStatus = Literal["PENDING_APPROVAL", "APPROVED", "REJECTED"]
+
+
+class GetSessionFactsIn(_In):
+    pass
+
+
+class PutSessionFactIn(_In):
+    fact: SessionFact
+
+
+class LookupLotIn(_In):
+    lot_id: str = Field(pattern=LOT_RE)
+
+
+class SubmitTransactionIn(_In):
+    action: TransactionAction
+    payload: dict[str, str | int | float | bool | None]
+    justification: str = Field(min_length=1, max_length=1000)
+
+
+class GetApprovalIn(_In):
+    approval_id: str = Field(pattern=r"^apr_[a-f0-9]{32}$")
+
+
+class AppendAuditIn(_In):
+    event: dict

@@ -24,6 +24,7 @@ from pydantic import BaseModel
 
 from harness.errors import (
     AUTO_REPAIR_FAILED,
+    CIRCUIT_OPEN,
     INJECTION_BLOCKED,
     HarnessError,
     HITL_REQUIRED,
@@ -36,6 +37,7 @@ from context.compress import compress_observation
 from context.memory import SessionMemory
 from contracts.models import SessionFact
 from harness.tool_harness import Tier, ToolExecutionHarness, canonical_hash
+from observability.tracing import span
 
 
 class State(str, Enum):
@@ -94,6 +96,23 @@ class LoopResult:
     observations: list[dict[str, Any]]
     iterations: int
     trace: list[State] = field(default_factory=list)
+    # Structured user remediation prompt, set on HALTED_BREAKER (Gate 9 item 1).
+    remediation: dict[str, str] | None = None
+
+
+def remediation_for(tool: str, error: str, attempts: int) -> dict[str, str]:
+    if error == "CIRCUIT_OPEN":
+        message = f"The {tool} service is temporarily unavailable. Nothing was changed. Please try again in a few minutes."
+        action = "retry_later"
+    elif error in ("SCHEMA_VALIDATION_FAILED", "INVALID_PARAMS"):
+        message = (f"I could not run {tool} with the details given ({attempts} identical attempts failed). "
+                   "Please check the IDs (for example LOT-00044 or SKU-099) and rephrase the request.")
+        action = "clarify_input"
+    else:
+        message = (f"{tool} failed {attempts} times with the same input ({error}). Nothing was changed. "
+                   "Please try again later or contact support with the trace ID.")
+        action = "retry_later"
+    return {"tool": tool, "error": error, "action": action, "message": message}
 
 
 class BoundedLoop:
@@ -139,8 +158,9 @@ class BoundedLoop:
         def move(s: State) -> None:
             trace.append(s)
 
-        def halt(s: State, reason: str, answer: str | None = None) -> LoopResult:
-            return LoopResult(s, reason, answer, observations, iterations, trace)
+        def halt(s: State, reason: str, answer: str | None = None,
+                 remediation: dict[str, str] | None = None) -> LoopResult:
+            return LoopResult(s, reason, answer, observations, iterations, trace, remediation)
 
         move(State.TRIAGE)  # routing is decided inside planner.reason until Gate 6; the state is recorded for OTel parity
 
@@ -150,69 +170,77 @@ class BoundedLoop:
             if iterations >= cfg.max_iterations:
                 return halt(State.HALTED, "max_iterations reached")
 
-            move(State.REASONING)
-            iterations += 1
-            prompt = ReActPrompt(anchor=anchor, turns=self.memory.window(tenant, session))
-            try:
-                action = await asyncio.wait_for(
-                    self.planner.reason(prompt),
-                    timeout=min(cfg.llm_step_timeout_s, max(remaining(), 0.0)),
-                )
-            except TimeoutError:
-                return halt(State.HALTED, "llm_step_timeout")
-
-            if isinstance(action, FinalAnswer):
-                move(State.VERIFY)
+            with span("agent.react.step", iteration=iterations + 1, tenant_id=tenant):
+                move(State.REASONING)
+                iterations += 1
+                prompt = ReActPrompt(anchor=anchor, turns=self.memory.window(tenant, session))
                 try:
-                    ok = await asyncio.wait_for(
-                        self.planner.verify(action.text, observations),
-                        timeout=max(remaining(), 1e-3),
+                    action = await asyncio.wait_for(
+                        self.planner.reason(prompt),
+                        timeout=min(cfg.llm_step_timeout_s, max(remaining(), 0.0)),
                     )
-                except Exception:  # timeout or verifier error: an unverified draft is never released
-                    return halt(State.HALTED, "verify_failed")
-                if ok:
-                    if self.fact_extractor is not None:
-                        facts = self.fact_extractor(action.text, observations)
-                        self.memory.persist_verified(tenant, session, facts)
-                    move(State.DONE)
-                    return halt(State.DONE, None, action.text)
-                return halt(State.HALTED, "verification_veto")
+                except TimeoutError:
+                    return halt(State.HALTED, "llm_step_timeout")
 
-            key = (action.tool, canonical_hash(action.args))
-            if remaining() <= 0:
-                return halt(State.HALTED, "total_loop_budget exceeded")
+                if isinstance(action, FinalAnswer):
+                    move(State.VERIFY)
+                    try:
+                        ok = await asyncio.wait_for(
+                            self.planner.verify(action.text, observations),
+                            timeout=max(remaining(), 1e-3),
+                        )
+                    except Exception:  # timeout or verifier error: an unverified draft is never released
+                        return halt(State.HALTED, "verify_failed")
+                    if ok:
+                        if self.fact_extractor is not None:
+                            facts = self.fact_extractor(action.text, observations)
+                            self.memory.persist_verified(tenant, session, facts)
+                        move(State.DONE)
+                        return halt(State.DONE, None, action.text)
+                    return halt(State.HALTED, "verification_veto")
 
-            move(State.TOOL_CALL)
-            payload = {**action.args, "ctx": {**base_ctx, "idempotency_key": str(uuid4())}}
-            try:
-                res = await asyncio.wait_for(
-                    self.harness.call(action.tool, payload, caller_tier=caller_tier),
-                    timeout=min(cfg.per_step_timeout_s, remaining()),
-                )
-                value = res.value.model_dump(mode="json") if isinstance(res.value, BaseModel) else res.value
-                obs = {"tool": action.tool, "ok": True, "result": value}
-                compressed = compress_observation(value)
-            except HarnessError as e:
-                if e.code in NON_RETRYABLE:
-                    return halt(State.HALTED, f"{e.name}: {e.message}")
-                failures[key] += 1
-                obs = {"tool": action.tool, "ok": False, "error": e.name, "detail": e.message}
-                compressed = e.name
-            except TimeoutError:
-                failures[key] += 1
-                obs = {"tool": action.tool, "ok": False, "error": "UPSTREAM_TIMEOUT", "detail": "step budget exceeded"}
-                compressed = "UPSTREAM_TIMEOUT"
+                key = (action.tool, canonical_hash(action.args))
+                if remaining() <= 0:
+                    return halt(State.HALTED, "total_loop_budget exceeded")
 
-            move(State.OBSERVATION)
-            observations.append(obs)
-            self.memory.append_turn(tenant, session, Turn(tool=action.tool, observation=compressed))
+                move(State.TOOL_CALL)
+                payload = {**action.args, "ctx": {**base_ctx, "idempotency_key": str(uuid4())}}
+                try:
+                    res = await asyncio.wait_for(
+                        self.harness.call(action.tool, payload, caller_tier=caller_tier),
+                        timeout=min(cfg.per_step_timeout_s, remaining()),
+                    )
+                    value = res.value.model_dump(mode="json") if isinstance(res.value, BaseModel) else res.value
+                    obs = {"tool": action.tool, "ok": True, "result": value}
+                    compressed = compress_observation(value)
+                except HarnessError as e:
+                    if e.code == CIRCUIT_OPEN:  # the pool is open: retrying inside this run cannot succeed
+                        observations.append({"tool": action.tool, "ok": False, "error": e.name, "detail": e.message})
+                        self.memory.append_turn(tenant, session, Turn(tool=action.tool, observation=e.name))
+                        move(State.HALTED_BREAKER)
+                        return halt(State.HALTED_BREAKER, f"{e.name}: {e.message}",
+                                    remediation=remediation_for(action.tool, e.name, 1))
+                    if e.code in NON_RETRYABLE:
+                        return halt(State.HALTED, f"{e.name}: {e.message}")
+                    failures[key] += 1
+                    obs = {"tool": action.tool, "ok": False, "error": e.name, "detail": e.message}
+                    compressed = e.name
+                except TimeoutError:
+                    failures[key] += 1
+                    obs = {"tool": action.tool, "ok": False, "error": "UPSTREAM_TIMEOUT", "detail": "step budget exceeded"}
+                    compressed = "UPSTREAM_TIMEOUT"
 
-            if failures[key] >= cfg.breaker_threshold:
-                move(State.HALTED_BREAKER)
-                return halt(State.HALTED_BREAKER, f"breaker tripped on {action.tool} after {failures[key]} failures")
+                move(State.OBSERVATION)
+                observations.append(obs)
+                self.memory.append_turn(tenant, session, Turn(tool=action.tool, observation=compressed))
 
-            digest = canonical_hash(obs)
-            if digest == last_digest:
-                # Same observation as the last step: nothing changed, so another REASONING pass cannot make progress.
-                return halt(State.HALTED, "no state change since last observation")
-            last_digest = digest
+                if failures[key] >= cfg.breaker_threshold:
+                    move(State.HALTED_BREAKER)
+                    return halt(State.HALTED_BREAKER, f"breaker tripped on {action.tool} after {failures[key]} failures",
+                                remediation=remediation_for(action.tool, obs["error"], failures[key]))
+
+                digest = canonical_hash(obs)
+                if digest == last_digest:
+                    # Same observation as the last step: nothing changed, so another REASONING pass cannot make progress.
+                    return halt(State.HALTED, "no state change since last observation")
+                last_digest = digest
