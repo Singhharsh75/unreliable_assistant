@@ -1,0 +1,421 @@
+{
+  "summary": {
+    "counts": {
+      "PASS": 12,
+      "FAIL": 4,
+      "WAIVED": 3,
+      "NOT_MEASURED": 17
+    },
+    "failing": [
+      "KPI-08",
+      "KPI-09",
+      "KPI-23",
+      "KPI-24"
+    ],
+    "release_blockers": [
+      "KPI-02",
+      "KPI-03",
+      "KPI-24",
+      "KPI-28"
+    ],
+    "release_ready": false
+  },
+  "kpis": [
+    {
+      "id": "KPI-01",
+      "stage": "Ingress & Triage",
+      "name": "Pre-hook guardrail latency p95",
+      "target": "<= 15 ms",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "OTel hook.pre",
+      "note": "pre-hooks (PII redactor, injection shield) are Gate 13",
+      "blocking": false
+    },
+    {
+      "id": "KPI-02",
+      "stage": "Ingress & Triage",
+      "name": "PII redaction recall",
+      "target": ">= 0.998 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "Presidio/regex audit",
+      "note": "PII redactor is Gate 13",
+      "blocking": true
+    },
+    {
+      "id": "KPI-03",
+      "stage": "Ingress & Triage",
+      "name": "Prompt-injection block rate",
+      "target": ">= 0.995 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "Red-team benchmark",
+      "note": "injection shield and red-team benchmark are Gates 13-14",
+      "blocking": true
+    },
+    {
+      "id": "KPI-04",
+      "stage": "Ingress & Triage",
+      "name": "Triage routing accuracy",
+      "target": ">= 0.97 ratio",
+      "value": 0.9752,
+      "status": "PASS",
+      "source": "eval/triage_labeled.jsonl",
+      "note": "121 labeled queries",
+      "blocking": false
+    },
+    {
+      "id": "KPI-05",
+      "stage": "Ingress & Triage",
+      "name": "Triage latency p95",
+      "target": "<= 25 ms",
+      "value": 0.0264,
+      "status": "PASS",
+      "source": "classify() timer",
+      "note": "",
+      "blocking": false
+    },
+    {
+      "id": "KPI-06",
+      "stage": "Ingress & Triage",
+      "name": "False refusal on benign queries",
+      "target": "<= 0.01 ratio",
+      "value": 0.0,
+      "status": "PASS",
+      "source": "golden questions",
+      "note": "250 benign golden questions",
+      "blocking": false
+    },
+    {
+      "id": "KPI-07",
+      "stage": "Hybrid Retrieval",
+      "name": "BM25 latency p95",
+      "target": "<= 12 ms",
+      "value": 0.57,
+      "status": "PASS",
+      "source": "live retriever, 250 golden queries",
+      "note": "",
+      "blocking": false
+    },
+    {
+      "id": "KPI-08",
+      "stage": "Hybrid Retrieval",
+      "name": "Bi-encoder + FAISS latency p95",
+      "target": "<= 25 ms",
+      "value": 134.3635,
+      "status": "FAIL",
+      "source": "live retriever, 250 golden queries",
+      "note": "",
+      "blocking": false
+    },
+    {
+      "id": "KPI-09",
+      "stage": "Hybrid Retrieval",
+      "name": "Cross-encoder rerank latency p95",
+      "target": "<= 45 ms",
+      "value": 496.3815,
+      "status": "FAIL",
+      "source": "live retriever, 250 golden queries",
+      "note": "",
+      "blocking": false
+    },
+    {
+      "id": "KPI-10",
+      "stage": "Hybrid Retrieval",
+      "name": "Hybrid context recall@50",
+      "target": ">= 0.92 ratio",
+      "value": 1.0,
+      "status": "PASS",
+      "source": "IR eval (live retriever)",
+      "note": "BM25 \u222a dense top-50, 213 answerable rows",
+      "blocking": false
+    },
+    {
+      "id": "KPI-11",
+      "stage": "Hybrid Retrieval",
+      "name": "Post-rerank context precision@4",
+      "target": ">= 0.88 ratio",
+      "value": 0.9253,
+      "status": "PASS",
+      "source": "ID-based precision (ADR-007)",
+      "note": "213 answerable golden rows",
+      "blocking": false
+    },
+    {
+      "id": "KPI-12",
+      "stage": "Hybrid Retrieval",
+      "name": "MRR@4",
+      "target": ">= 0.85 ratio",
+      "value": 0.9296,
+      "status": "PASS",
+      "source": "IR script",
+      "note": "213 answerable golden rows",
+      "blocking": false
+    },
+    {
+      "id": "KPI-13",
+      "stage": "Hybrid Retrieval",
+      "name": "nDCG@4",
+      "target": ">= 0.86 ratio",
+      "value": 0.8896,
+      "status": "PASS",
+      "source": "IR script",
+      "note": "213 answerable golden rows",
+      "blocking": false
+    },
+    {
+      "id": "KPI-14",
+      "stage": "Agent & Loop",
+      "name": "Tool schema first-pass validation rate",
+      "target": ">= 0.96 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "mcp.client spans",
+      "note": "production rate from mcp.client spans (error.code, repairs); no offline traffic to measure",
+      "blocking": false
+    },
+    {
+      "id": "KPI-15",
+      "stage": "Agent & Loop",
+      "name": "Auto-repair success on malformed args",
+      "target": ">= 0.9 ratio",
+      "value": 0.9,
+      "status": "PASS",
+      "source": "harness repair suite",
+      "note": "18/20 malformed-ID variants repaired",
+      "blocking": false
+    },
+    {
+      "id": "KPI-16",
+      "stage": "Agent & Loop",
+      "name": "Infinite-loop escape rate",
+      "target": ">= 1 ratio",
+      "value": 1.0,
+      "status": "PASS",
+      "source": "chaos loop suite",
+      "note": "7/7 chaos scenarios halted in budget",
+      "blocking": true
+    },
+    {
+      "id": "KPI-17",
+      "stage": "Agent & Loop",
+      "name": "Mean ReAct steps per completed task",
+      "target": "<= 2.2 steps",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "OTel trace count",
+      "note": "needs an LLM planner and production traces; only scripted planners exist",
+      "blocking": false
+    },
+    {
+      "id": "KPI-18",
+      "stage": "Agent & Loop",
+      "name": "Context drift (goal cosine alignment)",
+      "target": ">= 0.85 cosine",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "embedding drift audit",
+      "note": "needs an LLM planner and production traces; only scripted planners exist",
+      "blocking": false
+    },
+    {
+      "id": "KPI-19",
+      "stage": "Agent & Loop",
+      "name": "Tier 3 HITL enforcement",
+      "target": ">= 1 ratio",
+      "value": 1.0,
+      "status": "PASS",
+      "source": "HITL probe suite + audit chain",
+      "note": "8/8 HITL probes enforced",
+      "blocking": true
+    },
+    {
+      "id": "KPI-20",
+      "stage": "Generation",
+      "name": "RAGAS faithfulness",
+      "target": ">= 0.92 score",
+      "value": 0.853,
+      "status": "WAIVED",
+      "source": "ragas_report.json (anthropic/claude-sonnet-5.5, judge anthropic/claude-sonnet-5.5, 213 rows)",
+      "note": "waived gate 0.737 (ADR-009)",
+      "blocking": false
+    },
+    {
+      "id": "KPI-21",
+      "stage": "Generation",
+      "name": "RAGAS answer relevancy",
+      "target": ">= 0.9 score",
+      "value": 0.7707,
+      "status": "WAIVED",
+      "source": "ragas_report.json (anthropic/claude-sonnet-5.5, judge anthropic/claude-sonnet-5.5, 213 rows)",
+      "note": "waived gate 0.688 (ADR-009)",
+      "blocking": false
+    },
+    {
+      "id": "KPI-22",
+      "stage": "Generation",
+      "name": "RAGAS context entity recall",
+      "target": ">= 0.85 score",
+      "value": 0.5869,
+      "status": "WAIVED",
+      "source": "ragas_report.json (anthropic/claude-sonnet-5.5, judge anthropic/claude-sonnet-5.5, 213 rows)",
+      "note": "waived gate 0.453 (ADR-009)",
+      "blocking": false
+    },
+    {
+      "id": "KPI-23",
+      "stage": "Generation",
+      "name": "Unanswerable-query abstention accuracy",
+      "target": ">= 0.98 ratio",
+      "value": 0.9459,
+      "status": "FAIL",
+      "source": "eval/runs/answers.jsonl",
+      "note": "37 negative golden rows (no waiver: ADR-009 keeps the abstention gate)",
+      "blocking": false
+    },
+    {
+      "id": "KPI-24",
+      "stage": "Generation",
+      "name": "Unsupported claim rate",
+      "target": "<= 0.005 ratio",
+      "value": 0.3553,
+      "status": "FAIL",
+      "source": "claim verifier on answers.jsonl",
+      "note": "323/909 draft claims unsupported before the veto. The release path vetoes them, so released answers score 0 against this same verifier; this is the generator's rate",
+      "blocking": true
+    },
+    {
+      "id": "KPI-25",
+      "stage": "Generation",
+      "name": "TTFT p95",
+      "target": "<= 180 ms",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "FastAPI stream metric",
+      "note": "no streaming FastAPI endpoint yet",
+      "blocking": false
+    },
+    {
+      "id": "KPI-26",
+      "stage": "Token & Graphify",
+      "name": "Prompt token reduction",
+      "target": ">= 0.45 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "token counter hook",
+      "note": "Graphify vault and token counter are Gate 17",
+      "blocking": false
+    },
+    {
+      "id": "KPI-27",
+      "stage": "Token & Graphify",
+      "name": "Semantic cache hit ratio",
+      "target": ">= 0.35 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "Redis hit/miss",
+      "note": "semantic cache is Gate 17",
+      "blocking": false
+    },
+    {
+      "id": "KPI-28",
+      "stage": "Token & Graphify",
+      "name": "Cross-tenant cache isolation",
+      "target": ">= 1 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "concurrency probe",
+      "note": "semantic cache is Gate 17",
+      "blocking": true
+    },
+    {
+      "id": "KPI-29",
+      "stage": "Token & Graphify",
+      "name": "Cost per 1,000 queries",
+      "target": "<= 0.45 USD",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "OTel token cost",
+      "note": "token cost export needs the LLM path in production",
+      "blocking": false
+    },
+    {
+      "id": "KPI-30",
+      "stage": "Token & Graphify",
+      "name": "MCP JSON-RPC serialization overhead p95",
+      "target": "<= 4 ms",
+      "value": 0.0181,
+      "status": "PASS",
+      "source": "round-trip timer",
+      "note": "500 round trips, 4 chunks of 2,000 chars",
+      "blocking": false
+    },
+    {
+      "id": "KPI-31",
+      "stage": "Scale & Load",
+      "name": "E2E latency p50 @ 50K VUs",
+      "target": "<= 240 ms",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "k6 + JMeter",
+      "note": "50K-VU load test is Gates 15-16",
+      "blocking": false
+    },
+    {
+      "id": "KPI-32",
+      "stage": "Scale & Load",
+      "name": "E2E latency p95 @ 50K VUs",
+      "target": "<= 450 ms",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "k6 + JMeter",
+      "note": "50K-VU load test is Gates 15-16",
+      "blocking": false
+    },
+    {
+      "id": "KPI-33",
+      "stage": "Scale & Load",
+      "name": "E2E latency p99 @ 50K VUs",
+      "target": "<= 590 ms",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "k6 + JMeter",
+      "note": "50K-VU load test is Gates 15-16",
+      "blocking": false
+    },
+    {
+      "id": "KPI-34",
+      "stage": "Scale & Load",
+      "name": "HTTP 5xx rate @ 50K VUs",
+      "target": "<= 0.0005 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "k6 / JMeter",
+      "note": "50K-VU load test is Gates 15-16",
+      "blocking": false
+    },
+    {
+      "id": "KPI-35",
+      "stage": "Scale & Load",
+      "name": "Sustained throughput",
+      "target": ">= 8500 RPS",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "k6 / JMeter",
+      "note": "50K-VU load test is Gates 15-16",
+      "blocking": false
+    },
+    {
+      "id": "KPI-36",
+      "stage": "Scale & Load",
+      "name": "RSS growth over 1 h soak",
+      "target": "<= 0.03 ratio",
+      "value": null,
+      "status": "NOT_MEASURED",
+      "source": "Prometheus node exporter",
+      "note": "1 h soak test is Gates 15-16",
+      "blocking": false
+    }
+  ]
+}

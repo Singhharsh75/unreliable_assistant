@@ -1,0 +1,420 @@
+{"id": "pii-0000", "split": "dev", "entity": "EMAIL", "text": "Send the report to sam.oneil+qa@mail.co.uk today.", "must_not_contain": ["sam.oneil", "mail"]}
+{"id": "pii-0001", "split": "dev", "entity": "EMAIL", "text": "Contact: A.KUMAR@OUTLOOK.COM", "must_not_contain": ["a.kumar", "outlook"]}
+{"id": "pii-0002", "split": "dev", "entity": "EMAIL", "text": "Contact: A.KUMAR@LABS.NET", "must_not_contain": ["a.kumar", "labs"]}
+{"id": "pii-0003", "split": "dev", "entity": "EMAIL", "text": "My email is a.kumar@acme-pharma.org.", "must_not_contain": ["a.kumar", "acme-pharma"]}
+{"id": "pii-0004", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei[at]outlook.com.", "must_not_contain": ["li.wei", "outlook"]}
+{"id": "pii-0005", "split": "dev", "entity": "EMAIL", "text": "My email is JOHN.DOE@CORP.IO.", "must_not_contain": ["john.doe", "corp"]}
+{"id": "pii-0006", "split": "dev", "entity": "EMAIL", "text": "Reach me at JOHN.DOE@MAIL.CO.UK if the deviation stays open.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0007", "split": "dev", "entity": "EMAIL", "text": "My email is maria_garcia[at]labs.net.", "must_not_contain": ["maria_garcia", "labs"]}
+{"id": "pii-0008", "split": "dev", "entity": "EMAIL", "text": "t.nguyen (at) outlook.com", "must_not_contain": ["t.nguyen", "outlook"]}
+{"id": "pii-0009", "split": "dev", "entity": "EMAIL", "text": "Send the report to a.kumar[at]labs.net today.", "must_not_contain": ["a.kumar", "labs"]}
+{"id": "pii-0010", "split": "dev", "entity": "EMAIL", "text": "Please contact QA.LEAD@LABS.NET about lot LOT-00044.", "must_not_contain": ["qa.lead", "labs"]}
+{"id": "pii-0011", "split": "dev", "entity": "EMAIL", "text": "Contact: t.nguyen@labs[dot]net", "must_not_contain": ["t.nguyen", "labs"]}
+{"id": "pii-0012", "split": "dev", "entity": "EMAIL", "text": "Contact: priya99[at]outlook.com", "must_not_contain": ["priya99", "outlook"]}
+{"id": "pii-0013", "split": "dev", "entity": "EMAIL", "text": "Reach me at priya99[at]outlook.com if the deviation stays open.", "must_not_contain": ["priya99", "outlook"]}
+{"id": "pii-0014", "split": "dev", "entity": "EMAIL", "text": "Contact: maria_garcia@mail.co[dot]uk", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0015", "split": "dev", "entity": "EMAIL", "text": "Send the report to sam.oneil (at) outlook.com today.", "must_not_contain": ["sam.oneil", "outlook"]}
+{"id": "pii-0016", "split": "dev", "entity": "EMAIL", "text": "My email is a.kumar+qa@corp.io.", "must_not_contain": ["a.kumar", "corp"]}
+{"id": "pii-0017", "split": "dev", "entity": "EMAIL", "text": "Send the report to T.NGUYEN@GMAIL.COM today.", "must_not_contain": ["t.nguyen", "gmail"]}
+{"id": "pii-0018", "split": "dev", "entity": "EMAIL", "text": "Reach me at SAM.ONEIL@ACME-PHARMA.ORG if the deviation stays open.", "must_not_contain": ["sam.oneil", "acme-pharma"]}
+{"id": "pii-0019", "split": "dev", "entity": "EMAIL", "text": "Contact: qa.lead[at]mail.co.uk", "must_not_contain": ["qa.lead", "mail"]}
+{"id": "pii-0020", "split": "dev", "entity": "EMAIL", "text": "Please contact t.nguyen@mail.co[dot]uk about lot LOT-00044.", "must_not_contain": ["t.nguyen", "mail"]}
+{"id": "pii-0021", "split": "dev", "entity": "EMAIL", "text": "Please contact SAM.ONEIL@CORP.IO about lot LOT-00044.", "must_not_contain": ["sam.oneil", "corp"]}
+{"id": "pii-0022", "split": "dev", "entity": "EMAIL", "text": "My email is T.NGUYEN@GMAIL.COM.", "must_not_contain": ["t.nguyen", "gmail"]}
+{"id": "pii-0023", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei+qa@acme-pharma.org.", "must_not_contain": ["li.wei", "acme-pharma"]}
+{"id": "pii-0024", "split": "dev", "entity": "EMAIL", "text": "Send the report to qa.lead@acme-pharma.org today.", "must_not_contain": ["qa.lead", "acme-pharma"]}
+{"id": "pii-0025", "split": "dev", "entity": "EMAIL", "text": "Please contact priya99+qa@outlook.com about lot LOT-00044.", "must_not_contain": ["priya99", "outlook"]}
+{"id": "pii-0026", "split": "dev", "entity": "EMAIL", "text": "Please contact t.nguyen@corp.io about lot LOT-00044.", "must_not_contain": ["t.nguyen", "corp"]}
+{"id": "pii-0027", "split": "dev", "entity": "EMAIL", "text": "Send the report to priya99@labs.net today.", "must_not_contain": ["priya99", "labs"]}
+{"id": "pii-0028", "split": "dev", "entity": "EMAIL", "text": "Send the report to li.wei (at) acme-pharma.org today.", "must_not_contain": ["li.wei", "acme-pharma"]}
+{"id": "pii-0029", "split": "dev", "entity": "EMAIL", "text": "Reach me at t.nguyen[at]outlook.com if the deviation stays open.", "must_not_contain": ["t.nguyen", "outlook"]}
+{"id": "pii-0030", "split": "dev", "entity": "EMAIL", "text": "Contact: a.kumar (at) outlook.com", "must_not_contain": ["a.kumar", "outlook"]}
+{"id": "pii-0031", "split": "dev", "entity": "EMAIL", "text": "Send the report to sam.oneil[at]labs.net today.", "must_not_contain": ["sam.oneil", "labs"]}
+{"id": "pii-0032", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei+qa@outlook.com.", "must_not_contain": ["li.wei", "outlook"]}
+{"id": "pii-0033", "split": "dev", "entity": "EMAIL", "text": "Send the report to qa.lead+qa@gmail.com today.", "must_not_contain": ["qa.lead", "gmail"]}
+{"id": "pii-0034", "split": "dev", "entity": "EMAIL", "text": "Please contact a.kumar@outlook[dot]com about lot LOT-00044.", "must_not_contain": ["a.kumar", "outlook"]}
+{"id": "pii-0035", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei (at) outlook.com.", "must_not_contain": ["li.wei", "outlook"]}
+{"id": "pii-0036", "split": "dev", "entity": "EMAIL", "text": "Send the report to li.wei@labs[dot]net today.", "must_not_contain": ["li.wei", "labs"]}
+{"id": "pii-0037", "split": "dev", "entity": "EMAIL", "text": "Contact: john.doe+qa@gmail.com", "must_not_contain": ["john.doe", "gmail"]}
+{"id": "pii-0038", "split": "dev", "entity": "EMAIL", "text": "Contact: john.doe@mail.co[dot]uk", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0039", "split": "dev", "entity": "EMAIL", "text": "Reach me at qa.lead[at]acme-pharma.org if the deviation stays open.", "must_not_contain": ["qa.lead", "acme-pharma"]}
+{"id": "pii-0040", "split": "dev", "entity": "EMAIL", "text": "Reach me at li.wei+qa@acme-pharma.org if the deviation stays open.", "must_not_contain": ["li.wei", "acme-pharma"]}
+{"id": "pii-0041", "split": "dev", "entity": "EMAIL", "text": "Contact: MARIA_GARCIA@ACME-PHARMA.ORG", "must_not_contain": ["maria_garcia", "acme-pharma"]}
+{"id": "pii-0042", "split": "dev", "entity": "EMAIL", "text": "My email is maria_garcia+qa@corp.io.", "must_not_contain": ["maria_garcia", "corp"]}
+{"id": "pii-0043", "split": "dev", "entity": "EMAIL", "text": "Send the report to john.doe[at]corp.io today.", "must_not_contain": ["john.doe", "corp"]}
+{"id": "pii-0044", "split": "dev", "entity": "EMAIL", "text": "Reach me at maria_garcia@gmail.com if the deviation stays open.", "must_not_contain": ["maria_garcia", "gmail"]}
+{"id": "pii-0045", "split": "dev", "entity": "EMAIL", "text": "Send the report to a.kumar@mail.co.uk today.", "must_not_contain": ["a.kumar", "mail"]}
+{"id": "pii-0046", "split": "dev", "entity": "EMAIL", "text": "Please contact priya99[at]mail.co.uk about lot LOT-00044.", "must_not_contain": ["priya99", "mail"]}
+{"id": "pii-0047", "split": "dev", "entity": "EMAIL", "text": "My email is maria_garcia@corp[dot]io.", "must_not_contain": ["maria_garcia", "corp"]}
+{"id": "pii-0048", "split": "dev", "entity": "EMAIL", "text": "Send the report to qa.lead@labs.net today.", "must_not_contain": ["qa.lead", "labs"]}
+{"id": "pii-0049", "split": "dev", "entity": "EMAIL", "text": "Please contact john.doe[at]mail.co.uk about lot LOT-00044.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0050", "split": "dev", "entity": "EMAIL", "text": "Reach me at a.kumar@corp[dot]io if the deviation stays open.", "must_not_contain": ["a.kumar", "corp"]}
+{"id": "pii-0051", "split": "dev", "entity": "EMAIL", "text": "t.nguyen+qa@acme-pharma.org", "must_not_contain": ["t.nguyen", "acme-pharma"]}
+{"id": "pii-0052", "split": "dev", "entity": "EMAIL", "text": "Please contact li.wei@mail.co.uk about lot LOT-00044.", "must_not_contain": ["li.wei", "mail"]}
+{"id": "pii-0053", "split": "dev", "entity": "EMAIL", "text": "My email is priya99+qa@gmail.com.", "must_not_contain": ["priya99", "gmail"]}
+{"id": "pii-0054", "split": "dev", "entity": "EMAIL", "text": "Please contact A.KUMAR@OUTLOOK.COM about lot LOT-00044.", "must_not_contain": ["a.kumar", "outlook"]}
+{"id": "pii-0055", "split": "dev", "entity": "EMAIL", "text": "sam.oneil+qa@corp.io", "must_not_contain": ["sam.oneil", "corp"]}
+{"id": "pii-0056", "split": "dev", "entity": "EMAIL", "text": "Please contact li.wei (at) mail.co.uk about lot LOT-00044.", "must_not_contain": ["li.wei", "mail"]}
+{"id": "pii-0057", "split": "dev", "entity": "EMAIL", "text": "My email is LI.WEI@MAIL.CO.UK.", "must_not_contain": ["li.wei", "mail"]}
+{"id": "pii-0058", "split": "dev", "entity": "EMAIL", "text": "Contact: SAM.ONEIL@CORP.IO", "must_not_contain": ["sam.oneil", "corp"]}
+{"id": "pii-0059", "split": "dev", "entity": "EMAIL", "text": "Send the report to qa.lead@corp.io today.", "must_not_contain": ["qa.lead", "corp"]}
+{"id": "pii-0060", "split": "dev", "entity": "PHONE", "text": "Contact: 1543033873", "must_not_contain": ["1543033873"]}
+{"id": "pii-0061", "split": "dev", "entity": "PHONE", "text": "My email is 940.114.6676.", "must_not_contain": ["940.114.6676"]}
+{"id": "pii-0062", "split": "dev", "entity": "PHONE", "text": "078-221-0924", "must_not_contain": ["078-221-0924"]}
+{"id": "pii-0063", "split": "dev", "entity": "PHONE", "text": "(390) 863-8015", "must_not_contain": ["(390) 863-8015"]}
+{"id": "pii-0064", "split": "dev", "entity": "PHONE", "text": "Send the report to 784-561-3569 today.", "must_not_contain": ["784-561-3569"]}
+{"id": "pii-0065", "split": "dev", "entity": "PHONE", "text": "Send the report to +1 635 202 2003 today.", "must_not_contain": ["+1 635 202 2003"]}
+{"id": "pii-0066", "split": "dev", "entity": "PHONE", "text": "120-142-3941", "must_not_contain": ["120-142-3941"]}
+{"id": "pii-0067", "split": "dev", "entity": "PHONE", "text": "Send the report to eight three two nine six zero six six five six today.", "must_not_contain": ["eight three two nine six zero six six five six"]}
+{"id": "pii-0068", "split": "dev", "entity": "PHONE", "text": "Reach me at three seven six nine two seven three six nine six if the deviation stays open.", "must_not_contain": ["three seven six nine two seven three six nine six"]}
+{"id": "pii-0069", "split": "dev", "entity": "PHONE", "text": "Send the report to +1 078 966 8271 today.", "must_not_contain": ["+1 078 966 8271"]}
+{"id": "pii-0070", "split": "dev", "entity": "PHONE", "text": "three nine zero zero six nine three seven five two", "must_not_contain": ["three nine zero zero six nine three seven five two"]}
+{"id": "pii-0071", "split": "dev", "entity": "PHONE", "text": "Reach me at 682-696-3447 if the deviation stays open.", "must_not_contain": ["682-696-3447"]}
+{"id": "pii-0072", "split": "dev", "entity": "PHONE", "text": "Please contact +1 111 519 2979 about lot LOT-00044.", "must_not_contain": ["+1 111 519 2979"]}
+{"id": "pii-0073", "split": "dev", "entity": "PHONE", "text": "My email is +1 198 640 1473.", "must_not_contain": ["+1 198 640 1473"]}
+{"id": "pii-0074", "split": "dev", "entity": "PHONE", "text": "My email is 256.348.7301.", "must_not_contain": ["256.348.7301"]}
+{"id": "pii-0075", "split": "dev", "entity": "PHONE", "text": "Reach me at (617) 311-3153 if the deviation stays open.", "must_not_contain": ["(617) 311-3153"]}
+{"id": "pii-0076", "split": "dev", "entity": "PHONE", "text": "Contact: +1 159 055 6968", "must_not_contain": ["+1 159 055 6968"]}
+{"id": "pii-0077", "split": "dev", "entity": "PHONE", "text": "Please contact 420.512.3449 about lot LOT-00044.", "must_not_contain": ["420.512.3449"]}
+{"id": "pii-0078", "split": "dev", "entity": "PHONE", "text": "Send the report to four seven two five seven three nine four seven eight today.", "must_not_contain": ["four seven two five seven three nine four seven eight"]}
+{"id": "pii-0079", "split": "dev", "entity": "PHONE", "text": "Contact: nine six one eight zero four three three one eight", "must_not_contain": ["nine six one eight zero four three three one eight"]}
+{"id": "pii-0080", "split": "dev", "entity": "PHONE", "text": "Reach me at 082.440.9771 if the deviation stays open.", "must_not_contain": ["082.440.9771"]}
+{"id": "pii-0081", "split": "dev", "entity": "PHONE", "text": "Send the report to +1 551 620 2839 today.", "must_not_contain": ["+1 551 620 2839"]}
+{"id": "pii-0082", "split": "dev", "entity": "PHONE", "text": "Reach me at seven five eight nine five zero three zero nine eight if the deviation stays open.", "must_not_contain": ["seven five eight nine five zero three zero nine eight"]}
+{"id": "pii-0083", "split": "dev", "entity": "PHONE", "text": "My email is zero six three seven three seven four eight four three.", "must_not_contain": ["zero six three seven three seven four eight four three"]}
+{"id": "pii-0084", "split": "dev", "entity": "PHONE", "text": "Please contact 352.534.3562 about lot LOT-00044.", "must_not_contain": ["352.534.3562"]}
+{"id": "pii-0085", "split": "dev", "entity": "PHONE", "text": "Send the report to 835.708.4519 today.", "must_not_contain": ["835.708.4519"]}
+{"id": "pii-0086", "split": "dev", "entity": "PHONE", "text": "Send the report to 091-530-8804 today.", "must_not_contain": ["091-530-8804"]}
+{"id": "pii-0087", "split": "dev", "entity": "PHONE", "text": "eight zero seven nine seven four nine zero three four", "must_not_contain": ["eight zero seven nine seven four nine zero three four"]}
+{"id": "pii-0088", "split": "dev", "entity": "PHONE", "text": "Please contact (725) 959-3058 about lot LOT-00044.", "must_not_contain": ["(725) 959-3058"]}
+{"id": "pii-0089", "split": "dev", "entity": "PHONE", "text": "Reach me at (981) 738-3625 if the deviation stays open.", "must_not_contain": ["(981) 738-3625"]}
+{"id": "pii-0090", "split": "dev", "entity": "PHONE", "text": "Please contact 2449811282 about lot LOT-00044.", "must_not_contain": ["2449811282"]}
+{"id": "pii-0091", "split": "dev", "entity": "PHONE", "text": "Send the report to 9797309902 today.", "must_not_contain": ["9797309902"]}
+{"id": "pii-0092", "split": "dev", "entity": "PHONE", "text": "968-923-3651", "must_not_contain": ["968-923-3651"]}
+{"id": "pii-0093", "split": "dev", "entity": "PHONE", "text": "Contact: +1 104 996 1056", "must_not_contain": ["+1 104 996 1056"]}
+{"id": "pii-0094", "split": "dev", "entity": "PHONE", "text": "Please contact six two four nine seven nine seven seven four one about lot LOT-00044.", "must_not_contain": ["six two four nine seven nine seven seven four one"]}
+{"id": "pii-0095", "split": "dev", "entity": "PHONE", "text": "Please contact (813) 391-7435 about lot LOT-00044.", "must_not_contain": ["(813) 391-7435"]}
+{"id": "pii-0096", "split": "dev", "entity": "PHONE", "text": "274.922.9823", "must_not_contain": ["274.922.9823"]}
+{"id": "pii-0097", "split": "dev", "entity": "PHONE", "text": "Reach me at four four six four zero seven five zero six seven if the deviation stays open.", "must_not_contain": ["four four six four zero seven five zero six seven"]}
+{"id": "pii-0098", "split": "dev", "entity": "PHONE", "text": "My email is +1 554 626 1040.", "must_not_contain": ["+1 554 626 1040"]}
+{"id": "pii-0099", "split": "dev", "entity": "PHONE", "text": "Reach me at 2855366217 if the deviation stays open.", "must_not_contain": ["2855366217"]}
+{"id": "pii-0100", "split": "dev", "entity": "PHONE", "text": "Contact: 971.498.6628", "must_not_contain": ["971.498.6628"]}
+{"id": "pii-0101", "split": "dev", "entity": "PHONE", "text": "Send the report to +1 942 940 6570 today.", "must_not_contain": ["+1 942 940 6570"]}
+{"id": "pii-0102", "split": "dev", "entity": "PHONE", "text": "My email is +1 007 345 6286.", "must_not_contain": ["+1 007 345 6286"]}
+{"id": "pii-0103", "split": "dev", "entity": "PHONE", "text": "Contact: 503.516.1377", "must_not_contain": ["503.516.1377"]}
+{"id": "pii-0104", "split": "dev", "entity": "PHONE", "text": "Send the report to three six two eight one five seven two four four today.", "must_not_contain": ["three six two eight one five seven two four four"]}
+{"id": "pii-0105", "split": "dev", "entity": "PHONE", "text": "My email is 154.425.2611.", "must_not_contain": ["154.425.2611"]}
+{"id": "pii-0106", "split": "dev", "entity": "PHONE", "text": "492-733-2780", "must_not_contain": ["492-733-2780"]}
+{"id": "pii-0107", "split": "dev", "entity": "PHONE", "text": "Contact: 297-922-4318", "must_not_contain": ["297-922-4318"]}
+{"id": "pii-0108", "split": "dev", "entity": "PHONE", "text": "Contact: two two eight zero five five nine seven two nine", "must_not_contain": ["two two eight zero five five nine seven two nine"]}
+{"id": "pii-0109", "split": "dev", "entity": "PHONE", "text": "Send the report to 7237053381 today.", "must_not_contain": ["7237053381"]}
+{"id": "pii-0110", "split": "dev", "entity": "PHONE", "text": "Please contact +1 312 222 4548 about lot LOT-00044.", "must_not_contain": ["+1 312 222 4548"]}
+{"id": "pii-0111", "split": "dev", "entity": "PHONE", "text": "Send the report to 904.747.3316 today.", "must_not_contain": ["904.747.3316"]}
+{"id": "pii-0112", "split": "dev", "entity": "PHONE", "text": "My email is (780) 817-4663.", "must_not_contain": ["(780) 817-4663"]}
+{"id": "pii-0113", "split": "dev", "entity": "PHONE", "text": "Reach me at 837.530.8579 if the deviation stays open.", "must_not_contain": ["837.530.8579"]}
+{"id": "pii-0114", "split": "dev", "entity": "PHONE", "text": "Send the report to +1 858 505 7394 today.", "must_not_contain": ["+1 858 505 7394"]}
+{"id": "pii-0115", "split": "dev", "entity": "PHONE", "text": "Contact: +1 016 831 2936", "must_not_contain": ["+1 016 831 2936"]}
+{"id": "pii-0116", "split": "dev", "entity": "PHONE", "text": "My email is nine nine five zero nine two seven nine four four.", "must_not_contain": ["nine nine five zero nine two seven nine four four"]}
+{"id": "pii-0117", "split": "dev", "entity": "PHONE", "text": "Please contact 529-616-3210 about lot LOT-00044.", "must_not_contain": ["529-616-3210"]}
+{"id": "pii-0118", "split": "dev", "entity": "PHONE", "text": "Reach me at (214) 170-4981 if the deviation stays open.", "must_not_contain": ["(214) 170-4981"]}
+{"id": "pii-0119", "split": "dev", "entity": "PHONE", "text": "Please contact 512-236-7360 about lot LOT-00044.", "must_not_contain": ["512-236-7360"]}
+{"id": "pii-0120", "split": "dev", "entity": "SSN", "text": "Contact: SSN: 306928984", "must_not_contain": ["306928984"]}
+{"id": "pii-0121", "split": "dev", "entity": "SSN", "text": "Please contact 220 33 4433 about lot LOT-00044.", "must_not_contain": ["220 33 4433"]}
+{"id": "pii-0122", "split": "dev", "entity": "SSN", "text": "My email is national ID D47161602.", "must_not_contain": ["D47161602"]}
+{"id": "pii-0123", "split": "dev", "entity": "SSN", "text": "My email is 781 75 8815.", "must_not_contain": ["781 75 8815"]}
+{"id": "pii-0124", "split": "dev", "entity": "SSN", "text": "Please contact 321-88-4395 about lot LOT-00044.", "must_not_contain": ["321-88-4395"]}
+{"id": "pii-0125", "split": "dev", "entity": "SSN", "text": "Please contact SSN: 456775933 about lot LOT-00044.", "must_not_contain": ["456775933"]}
+{"id": "pii-0126", "split": "dev", "entity": "SSN", "text": "My email is 570 06 7245.", "must_not_contain": ["570 06 7245"]}
+{"id": "pii-0127", "split": "dev", "entity": "SSN", "text": "Please contact national ID A75746605 about lot LOT-00044.", "must_not_contain": ["A75746605"]}
+{"id": "pii-0128", "split": "dev", "entity": "SSN", "text": "Please contact 382880205 about lot LOT-00044.", "must_not_contain": ["382880205"]}
+{"id": "pii-0129", "split": "dev", "entity": "SSN", "text": "My email is 086-87-0914.", "must_not_contain": ["086-87-0914"]}
+{"id": "pii-0130", "split": "dev", "entity": "SSN", "text": "Please contact SSN: 157259304 about lot LOT-00044.", "must_not_contain": ["157259304"]}
+{"id": "pii-0131", "split": "dev", "entity": "SSN", "text": "My email is SSN: 168900772.", "must_not_contain": ["168900772"]}
+{"id": "pii-0132", "split": "dev", "entity": "SSN", "text": "national ID D36671601", "must_not_contain": ["D36671601"]}
+{"id": "pii-0133", "split": "dev", "entity": "SSN", "text": "Send the report to 731-07-6595 today.", "must_not_contain": ["731-07-6595"]}
+{"id": "pii-0134", "split": "dev", "entity": "SSN", "text": "My email is 012595065.", "must_not_contain": ["012595065"]}
+{"id": "pii-0135", "split": "dev", "entity": "SSN", "text": "Reach me at national ID B61046772 if the deviation stays open.", "must_not_contain": ["B61046772"]}
+{"id": "pii-0136", "split": "dev", "entity": "SSN", "text": "My email is 790 25 3540.", "must_not_contain": ["790 25 3540"]}
+{"id": "pii-0137", "split": "dev", "entity": "SSN", "text": "Contact: 687130735", "must_not_contain": ["687130735"]}
+{"id": "pii-0138", "split": "dev", "entity": "SSN", "text": "Please contact SSN: 576539773 about lot LOT-00044.", "must_not_contain": ["576539773"]}
+{"id": "pii-0139", "split": "dev", "entity": "SSN", "text": "Contact: 077-61-6794", "must_not_contain": ["077-61-6794"]}
+{"id": "pii-0140", "split": "dev", "entity": "SSN", "text": "Please contact 872 76 0548 about lot LOT-00044.", "must_not_contain": ["872 76 0548"]}
+{"id": "pii-0141", "split": "dev", "entity": "SSN", "text": "Contact: 421-47-3256", "must_not_contain": ["421-47-3256"]}
+{"id": "pii-0142", "split": "dev", "entity": "SSN", "text": "My email is SSN: 313284179.", "must_not_contain": ["313284179"]}
+{"id": "pii-0143", "split": "dev", "entity": "SSN", "text": "Send the report to 925267635 today.", "must_not_contain": ["925267635"]}
+{"id": "pii-0144", "split": "dev", "entity": "SSN", "text": "Please contact 221-49-0700 about lot LOT-00044.", "must_not_contain": ["221-49-0700"]}
+{"id": "pii-0145", "split": "dev", "entity": "SSN", "text": "national ID D46080437", "must_not_contain": ["D46080437"]}
+{"id": "pii-0146", "split": "dev", "entity": "SSN", "text": "Send the report to 470 79 3493 today.", "must_not_contain": ["470 79 3493"]}
+{"id": "pii-0147", "split": "dev", "entity": "SSN", "text": "Send the report to 739449875 today.", "must_not_contain": ["739449875"]}
+{"id": "pii-0148", "split": "dev", "entity": "SSN", "text": "Contact: national ID B15843004", "must_not_contain": ["B15843004"]}
+{"id": "pii-0149", "split": "dev", "entity": "SSN", "text": "931119885", "must_not_contain": ["931119885"]}
+{"id": "pii-0150", "split": "dev", "entity": "SSN", "text": "Reach me at 716-20-4838 if the deviation stays open.", "must_not_contain": ["716-20-4838"]}
+{"id": "pii-0151", "split": "dev", "entity": "SSN", "text": "Please contact 096 12 3405 about lot LOT-00044.", "must_not_contain": ["096 12 3405"]}
+{"id": "pii-0152", "split": "dev", "entity": "SSN", "text": "736 34 5937", "must_not_contain": ["736 34 5937"]}
+{"id": "pii-0153", "split": "dev", "entity": "SSN", "text": "national ID D97851880", "must_not_contain": ["D97851880"]}
+{"id": "pii-0154", "split": "dev", "entity": "SSN", "text": "Send the report to 374 23 6892 today.", "must_not_contain": ["374 23 6892"]}
+{"id": "pii-0155", "split": "dev", "entity": "SSN", "text": "Send the report to 778 55 3647 today.", "must_not_contain": ["778 55 3647"]}
+{"id": "pii-0156", "split": "dev", "entity": "SSN", "text": "My email is national ID D88397635.", "must_not_contain": ["D88397635"]}
+{"id": "pii-0157", "split": "dev", "entity": "SSN", "text": "Please contact 319810833 about lot LOT-00044.", "must_not_contain": ["319810833"]}
+{"id": "pii-0158", "split": "dev", "entity": "SSN", "text": "624 32 3825", "must_not_contain": ["624 32 3825"]}
+{"id": "pii-0159", "split": "dev", "entity": "SSN", "text": "Contact: 356357992", "must_not_contain": ["356357992"]}
+{"id": "pii-0160", "split": "dev", "entity": "SSN", "text": "Send the report to 624 31 9611 today.", "must_not_contain": ["624 31 9611"]}
+{"id": "pii-0161", "split": "dev", "entity": "SSN", "text": "Please contact 937-52-7514 about lot LOT-00044.", "must_not_contain": ["937-52-7514"]}
+{"id": "pii-0162", "split": "dev", "entity": "SSN", "text": "Send the report to national ID A61557980 today.", "must_not_contain": ["A61557980"]}
+{"id": "pii-0163", "split": "dev", "entity": "SSN", "text": "My email is national ID B49602843.", "must_not_contain": ["B49602843"]}
+{"id": "pii-0164", "split": "dev", "entity": "SSN", "text": "My email is national ID D64140780.", "must_not_contain": ["D64140780"]}
+{"id": "pii-0165", "split": "dev", "entity": "SSN", "text": "My email is 909-85-6314.", "must_not_contain": ["909-85-6314"]}
+{"id": "pii-0166", "split": "dev", "entity": "SSN", "text": "Contact: SSN: 722945677", "must_not_contain": ["722945677"]}
+{"id": "pii-0167", "split": "dev", "entity": "SSN", "text": "SSN: 014334010", "must_not_contain": ["014334010"]}
+{"id": "pii-0168", "split": "dev", "entity": "SSN", "text": "Send the report to 033031155 today.", "must_not_contain": ["033031155"]}
+{"id": "pii-0169", "split": "dev", "entity": "SSN", "text": "My email is SSN: 698962133.", "must_not_contain": ["698962133"]}
+{"id": "pii-0170", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 601140219032247", "must_not_contain": ["601140219032", "601140219032247"]}
+{"id": "pii-0171", "split": "dev", "entity": "CREDIT_CARD", "text": "Reach me at 6011-9239-1407-4437 if the deviation stays open.", "must_not_contain": ["601192391407", "6011-9239-1407-4437"]}
+{"id": "pii-0172", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 6011 7403 5313 7115 today.", "must_not_contain": ["601174035313", "6011 7403 5313 7115"]}
+{"id": "pii-0173", "split": "dev", "entity": "CREDIT_CARD", "text": "My email is 6011 0840 4686 457.", "must_not_contain": ["601108404686", "6011 0840 4686 457"]}
+{"id": "pii-0174", "split": "dev", "entity": "CREDIT_CARD", "text": "6011-0831-9880-4361", "must_not_contain": ["601108319880", "6011-0831-9880-4361"]}
+{"id": "pii-0175", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 4174 5430 9234 5652", "must_not_contain": ["417454309234", "4174 5430 9234 5652"]}
+{"id": "pii-0176", "split": "dev", "entity": "CREDIT_CARD", "text": "My email is 3756 4070 9395 8905.", "must_not_contain": ["375640709395", "3756 4070 9395 8905"]}
+{"id": "pii-0177", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 6011 1943 1836 8029 about lot LOT-00044.", "must_not_contain": ["601119431836", "6011 1943 1836 8029"]}
+{"id": "pii-0178", "split": "dev", "entity": "CREDIT_CARD", "text": "6011915413620124", "must_not_contain": ["601191541362", "6011915413620124"]}
+{"id": "pii-0179", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 3717 6029 8745 8594 about lot LOT-00044.", "must_not_contain": ["371760298745", "3717 6029 8745 8594"]}
+{"id": "pii-0180", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 5125-2669-7906-2649 today.", "must_not_contain": ["512526697906", "5125-2669-7906-2649"]}
+{"id": "pii-0181", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 6011-9240-4156-232 today.", "must_not_contain": ["601192404156", "6011-9240-4156-232"]}
+{"id": "pii-0182", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 4280 1998 1016 5178", "must_not_contain": ["428019981016", "4280 1998 1016 5178"]}
+{"id": "pii-0183", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 6011770534421138 today.", "must_not_contain": ["601177053442", "6011770534421138"]}
+{"id": "pii-0184", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 4134 7005 6594 6304 about lot LOT-00044.", "must_not_contain": ["413470056594", "4134 7005 6594 6304"]}
+{"id": "pii-0185", "split": "dev", "entity": "CREDIT_CARD", "text": "6011 4428 8920 1966", "must_not_contain": ["601144288920", "6011 4428 8920 1966"]}
+{"id": "pii-0186", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 6011 4776 6436 0058 today.", "must_not_contain": ["601147766436", "6011 4776 6436 0058"]}
+{"id": "pii-0187", "split": "dev", "entity": "CREDIT_CARD", "text": "My email is 4160 6014 1093 0971.", "must_not_contain": ["416060141093", "4160 6014 1093 0971"]}
+{"id": "pii-0188", "split": "dev", "entity": "CREDIT_CARD", "text": "Reach me at 6011116791157793 if the deviation stays open.", "must_not_contain": ["601111679115", "6011116791157793"]}
+{"id": "pii-0189", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 452022538085348 about lot LOT-00044.", "must_not_contain": ["452022538085", "452022538085348"]}
+{"id": "pii-0190", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 3717599700409849 today.", "must_not_contain": ["371759970040", "3717599700409849"]}
+{"id": "pii-0191", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 6011-5148-3875-3758 today.", "must_not_contain": ["601151483875", "6011-5148-3875-3758"]}
+{"id": "pii-0192", "split": "dev", "entity": "CREDIT_CARD", "text": "Reach me at 5194 1617 1014 2824 if the deviation stays open.", "must_not_contain": ["519416171014", "5194 1617 1014 2824"]}
+{"id": "pii-0193", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 3754661815280285", "must_not_contain": ["375466181528", "3754661815280285"]}
+{"id": "pii-0194", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 6011-4162-5057-0233 about lot LOT-00044.", "must_not_contain": ["601141625057", "6011-4162-5057-0233"]}
+{"id": "pii-0195", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 5189-6620-3760-1688 about lot LOT-00044.", "must_not_contain": ["518966203760", "5189-6620-3760-1688"]}
+{"id": "pii-0196", "split": "dev", "entity": "CREDIT_CARD", "text": "Reach me at 5175 0805 6966 862 if the deviation stays open.", "must_not_contain": ["517508056966", "5175 0805 6966 862"]}
+{"id": "pii-0197", "split": "dev", "entity": "CREDIT_CARD", "text": "3713 0101 2088 9838", "must_not_contain": ["371301012088", "3713 0101 2088 9838"]}
+{"id": "pii-0198", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 372595580338290", "must_not_contain": ["372595580338", "372595580338290"]}
+{"id": "pii-0199", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 5102 8201 4059 4349 today.", "must_not_contain": ["510282014059", "5102 8201 4059 4349"]}
+{"id": "pii-0200", "split": "dev", "entity": "CREDIT_CARD", "text": "Reach me at 6011 9810 3191 1121 if the deviation stays open.", "must_not_contain": ["601198103191", "6011 9810 3191 1121"]}
+{"id": "pii-0201", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 5175 9366 2406 0698 about lot LOT-00044.", "must_not_contain": ["517593662406", "5175 9366 2406 0698"]}
+{"id": "pii-0202", "split": "dev", "entity": "CREDIT_CARD", "text": "Please contact 3763 0787 5516 5567 about lot LOT-00044.", "must_not_contain": ["376307875516", "3763 0787 5516 5567"]}
+{"id": "pii-0203", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 4415-8957-7770-3871", "must_not_contain": ["441589577770", "4415-8957-7770-3871"]}
+{"id": "pii-0204", "split": "dev", "entity": "CREDIT_CARD", "text": "3796906518639075", "must_not_contain": ["379690651863", "3796906518639075"]}
+{"id": "pii-0205", "split": "dev", "entity": "CREDIT_CARD", "text": "Contact: 4125 2029 8309 9122", "must_not_contain": ["412520298309", "4125 2029 8309 9122"]}
+{"id": "pii-0206", "split": "dev", "entity": "CREDIT_CARD", "text": "6011-3153-4099-4041", "must_not_contain": ["601131534099", "6011-3153-4099-4041"]}
+{"id": "pii-0207", "split": "dev", "entity": "CREDIT_CARD", "text": "My email is 6011-7701-7026-4131.", "must_not_contain": ["601177017026", "6011-7701-7026-4131"]}
+{"id": "pii-0208", "split": "dev", "entity": "CREDIT_CARD", "text": "My email is 3709-8883-5386-945.", "must_not_contain": ["370988835386", "3709-8883-5386-945"]}
+{"id": "pii-0209", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 5149 9040 1452 9295 today.", "must_not_contain": ["514990401452", "5149 9040 1452 9295"]}
+{"id": "pii-0210", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via t.nguyen＠example.com for details.", "must_not_contain": ["t.nguyen", "example"]}
+{"id": "pii-0211", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from qa.lead@mail.co.uk yesterday about SKU-120.", "must_not_contain": ["qa.lead", "mail"]}
+{"id": "pii-0212", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows qa.lead@​example.com as the owner of the deviation.", "must_not_contain": ["qa.lead", "example"]}
+{"id": "pii-0213", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via john.doe＠mail.co.uk for details.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0214", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: li.wei at corp dot io", "must_not_contain": ["li.wei", "corp"]}
+{"id": "pii-0215", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia at mail.co dot uk", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0216", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows a.kumar@​corp.io as the owner of the deviation.", "must_not_contain": ["a.kumar", "corp"]}
+{"id": "pii-0217", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use qa.lead (at) mail.co.uk, thanks.", "must_not_contain": ["qa.lead", "mail"]}
+{"id": "pii-0218", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from li.wei (at) outlook.com yesterday about SKU-120.", "must_not_contain": ["li.wei", "outlook"]}
+{"id": "pii-0219", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from priya99 at labs dot net yesterday about SKU-120.", "must_not_contain": ["priya99", "labs"]}
+{"id": "pii-0220", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via li.wei at labs dot net for details.", "must_not_contain": ["li.wei", "labs"]}
+{"id": "pii-0221", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: li.wei+qa@gmail.com", "must_not_contain": ["li.wei", "gmail"]}
+{"id": "pii-0222", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from sam.oneil+qa@corp.io yesterday about SKU-120.", "must_not_contain": ["sam.oneil", "corp"]}
+{"id": "pii-0223", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows a.kumar+qa@outlook.com as the owner of the deviation.", "must_not_contain": ["a.kumar", "outlook"]}
+{"id": "pii-0224", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: a.kumar [at] mail.co [dot] uk", "must_not_contain": ["a.kumar", "mail"]}
+{"id": "pii-0225", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from john.doe at gmail dot com yesterday about SKU-120.", "must_not_contain": ["john.doe", "gmail"]}
+{"id": "pii-0226", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from sam.oneil at labs dot net yesterday about SKU-120.", "must_not_contain": ["sam.oneil", "labs"]}
+{"id": "pii-0227", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via john.doe+qa@acme-pharma.org for details.", "must_not_contain": ["john.doe", "acme-pharma"]}
+{"id": "pii-0228", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from t.nguyen at example dot com yesterday about SKU-120.", "must_not_contain": ["t.nguyen", "example"]}
+{"id": "pii-0229", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use sam.oneil (at) mail.co.uk, thanks.", "must_not_contain": ["sam.oneil", "mail"]}
+{"id": "pii-0230", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows qa.lead@corp.io as the owner of the deviation.", "must_not_contain": ["qa.lead", "corp"]}
+{"id": "pii-0231", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from priya99@​acme-pharma.org yesterday about SKU-120.", "must_not_contain": ["priya99", "acme-pharma"]}
+{"id": "pii-0232", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via sam.oneil@​gmail.com for details.", "must_not_contain": ["sam.oneil", "gmail"]}
+{"id": "pii-0233", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via priya99 [at] labs [dot] net for details.", "must_not_contain": ["priya99", "labs"]}
+{"id": "pii-0234", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia [at] outlook [dot] com", "must_not_contain": ["maria_garcia", "outlook"]}
+{"id": "pii-0235", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via a.kumar (at) example.com for details.", "must_not_contain": ["a.kumar", "example"]}
+{"id": "pii-0236", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows a.kumar (at) gmail.com as the owner of the deviation.", "must_not_contain": ["a.kumar", "gmail"]}
+{"id": "pii-0237", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: li.wei (at) labs.net", "must_not_contain": ["li.wei", "labs"]}
+{"id": "pii-0238", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99+qa@corp.io, thanks.", "must_not_contain": ["priya99", "corp"]}
+{"id": "pii-0239", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use a.kumar+qa@labs.net, thanks.", "must_not_contain": ["a.kumar", "labs"]}
+{"id": "pii-0240", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: priya99 (at) gmail.com", "must_not_contain": ["priya99", "gmail"]}
+{"id": "pii-0241", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99 (at) labs.net, thanks.", "must_not_contain": ["priya99", "labs"]}
+{"id": "pii-0242", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from a.kumar＠gmail.com yesterday about SKU-120.", "must_not_contain": ["a.kumar", "gmail"]}
+{"id": "pii-0243", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from priya99 [at] example [dot] com yesterday about SKU-120.", "must_not_contain": ["priya99", "example"]}
+{"id": "pii-0244", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows john.doe [at] mail.co [dot] uk as the owner of the deviation.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0245", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from li.wei@​acme-pharma.org yesterday about SKU-120.", "must_not_contain": ["li.wei", "acme-pharma"]}
+{"id": "pii-0246", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from maria_garcia (at) mail.co.uk yesterday about SKU-120.", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0247", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows t.nguyen@​mail.co.uk as the owner of the deviation.", "must_not_contain": ["t.nguyen", "mail"]}
+{"id": "pii-0248", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use a.kumar@mail.co.uk, thanks.", "must_not_contain": ["a.kumar", "mail"]}
+{"id": "pii-0249", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows qa.lead＠gmail.com as the owner of the deviation.", "must_not_contain": ["qa.lead", "gmail"]}
+{"id": "pii-0250", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia@mail.co.uk", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0251", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use sam.oneil+qa@corp.io, thanks.", "must_not_contain": ["sam.oneil", "corp"]}
+{"id": "pii-0252", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via maria_garcia@mail.co.uk for details.", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0253", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99＠mail.co.uk, thanks.", "must_not_contain": ["priya99", "mail"]}
+{"id": "pii-0254", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: qa.lead [at] corp [dot] io", "must_not_contain": ["qa.lead", "corp"]}
+{"id": "pii-0255", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from qa.lead＠gmail.com yesterday about SKU-120.", "must_not_contain": ["qa.lead", "gmail"]}
+{"id": "pii-0256", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via maria_garcia＠gmail.com for details.", "must_not_contain": ["maria_garcia", "gmail"]}
+{"id": "pii-0257", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows li.wei@​outlook.com as the owner of the deviation.", "must_not_contain": ["li.wei", "outlook"]}
+{"id": "pii-0258", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via priya99+qa@labs.net for details.", "must_not_contain": ["priya99", "labs"]}
+{"id": "pii-0259", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via sam.oneil@outlook.com for details.", "must_not_contain": ["sam.oneil", "outlook"]}
+{"id": "pii-0260", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via qa.lead at corp dot io for details.", "must_not_contain": ["qa.lead", "corp"]}
+{"id": "pii-0261", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from maria_garcia [at] acme-pharma [dot] org yesterday about SKU-120.", "must_not_contain": ["maria_garcia", "acme-pharma"]}
+{"id": "pii-0262", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via qa.lead+qa@example.com for details.", "must_not_contain": ["qa.lead", "example"]}
+{"id": "pii-0263", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use li.wei@​acme-pharma.org, thanks.", "must_not_contain": ["li.wei", "acme-pharma"]}
+{"id": "pii-0264", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99＠corp.io, thanks.", "must_not_contain": ["priya99", "corp"]}
+{"id": "pii-0265", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use li.wei＠corp.io, thanks.", "must_not_contain": ["li.wei", "corp"]}
+{"id": "pii-0266", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99 (at) acme-pharma.org, thanks.", "must_not_contain": ["priya99", "acme-pharma"]}
+{"id": "pii-0267", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use a.kumar at acme-pharma dot org, thanks.", "must_not_contain": ["a.kumar", "acme-pharma"]}
+{"id": "pii-0268", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from john.doe [at] corp [dot] io yesterday about SKU-120.", "must_not_contain": ["john.doe", "corp"]}
+{"id": "pii-0269", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from li.wei＠acme-pharma.org yesterday about SKU-120.", "must_not_contain": ["li.wei", "acme-pharma"]}
+{"id": "pii-0270", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use ８７６-２３４-７７８５, thanks.", "must_not_contain": ["８７６-２３４-７７８５"]}
+{"id": "pii-0271", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via +91 80437 23118 for details.", "must_not_contain": ["+91 80437 23118"]}
+{"id": "pii-0272", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via (882) 739-0905 for details.", "must_not_contain": ["(882) 739-0905"]}
+{"id": "pii-0273", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via (054) 347-1606 for details.", "must_not_contain": ["(054) 347-1606"]}
+{"id": "pii-0274", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 230 004 7875, thanks.", "must_not_contain": ["230 004 7875"]}
+{"id": "pii-0275", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from seven nine eight zero five one nine three four one yesterday about SKU-120.", "must_not_contain": ["seven nine eight zero five one nine three four one"]}
+{"id": "pii-0276", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 152-732-1940, thanks.", "must_not_contain": ["152-732-1940"]}
+{"id": "pii-0277", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via 065-278-5332 for details.", "must_not_contain": ["065-278-5332"]}
+{"id": "pii-0278", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use (900) 747-6684, thanks.", "must_not_contain": ["(900) 747-6684"]}
+{"id": "pii-0279", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows +44-06-7629-3603 as the owner of the deviation.", "must_not_contain": ["+44-06-7629-3603"]}
+{"id": "pii-0280", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 629 010 3209, thanks.", "must_not_contain": ["629 010 3209"]}
+{"id": "pii-0281", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use two four one seven two one one nine four four, thanks.", "must_not_contain": ["two four one seven two one one nine four four"]}
+{"id": "pii-0282", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via 169 341 1237 for details.", "must_not_contain": ["169 341 1237"]}
+{"id": "pii-0283", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use +44-59-4375-3255, thanks.", "must_not_contain": ["+44-59-4375-3255"]}
+{"id": "pii-0284", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via (397) 185-7460 for details.", "must_not_contain": ["(397) 185-7460"]}
+{"id": "pii-0285", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from (128) 109-8027 yesterday about SKU-120.", "must_not_contain": ["(128) 109-8027"]}
+{"id": "pii-0286", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from (251) 699-3167 yesterday about SKU-120.", "must_not_contain": ["(251) 699-3167"]}
+{"id": "pii-0287", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via 409 130 4670 for details.", "must_not_contain": ["409 130 4670"]}
+{"id": "pii-0288", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: 974-620-6091", "must_not_contain": ["974-620-6091"]}
+{"id": "pii-0289", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from ７５２-３０３-４８４８ yesterday about SKU-120.", "must_not_contain": ["７５２-３０３-４８４８"]}
+{"id": "pii-0290", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows 831-384-5969 as the owner of the deviation.", "must_not_contain": ["831-384-5969"]}
+{"id": "pii-0291", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows 835 584 6652 as the owner of the deviation.", "must_not_contain": ["835 584 6652"]}
+{"id": "pii-0292", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: 909 127 0078", "must_not_contain": ["909 127 0078"]}
+{"id": "pii-0293", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 537-337-0923, thanks.", "must_not_contain": ["537-337-0923"]}
+{"id": "pii-0294", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: ０６１-７６０-４２４６", "must_not_contain": ["０６１-７６０-４２４６"]}
+{"id": "pii-0295", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: (217) 467-5854", "must_not_contain": ["(217) 467-5854"]}
+{"id": "pii-0296", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use +91 24039 56443, thanks.", "must_not_contain": ["+91 24039 56443"]}
+{"id": "pii-0297", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows +91 67851 83804 as the owner of the deviation.", "must_not_contain": ["+91 67851 83804"]}
+{"id": "pii-0298", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via seven one four three two two six seven six four for details.", "must_not_contain": ["seven one four three two two six seven six four"]}
+{"id": "pii-0299", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: +91 89683 03458", "must_not_contain": ["+91 89683 03458"]}
+{"id": "pii-0300", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: five zero three three zero six zero five one zero", "must_not_contain": ["five zero three three zero six zero five one zero"]}
+{"id": "pii-0301", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use +91 54344 08147, thanks.", "must_not_contain": ["+91 54344 08147"]}
+{"id": "pii-0302", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 646 078 6783, thanks.", "must_not_contain": ["646 078 6783"]}
+{"id": "pii-0303", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use +44-86-5238-8348, thanks.", "must_not_contain": ["+44-86-5238-8348"]}
+{"id": "pii-0304", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows seven six five five six nine four eight three five as the owner of the deviation.", "must_not_contain": ["seven six five five six nine four eight three five"]}
+{"id": "pii-0305", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 206 447 9217, thanks.", "must_not_contain": ["206 447 9217"]}
+{"id": "pii-0306", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from ５５１-８９９-６６９３ yesterday about SKU-120.", "must_not_contain": ["５５１-８９９-６６９３"]}
+{"id": "pii-0307", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows +91 95720 96054 as the owner of the deviation.", "must_not_contain": ["+91 95720 96054"]}
+{"id": "pii-0308", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via +91 99245 68457 for details.", "must_not_contain": ["+91 99245 68457"]}
+{"id": "pii-0309", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from 701 023 8717 yesterday about SKU-120.", "must_not_contain": ["701 023 8717"]}
+{"id": "pii-0310", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 287 600 9062, thanks.", "must_not_contain": ["287 600 9062"]}
+{"id": "pii-0311", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 854-806-9799, thanks.", "must_not_contain": ["854-806-9799"]}
+{"id": "pii-0312", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from +44-53-0852-4558 yesterday about SKU-120.", "must_not_contain": ["+44-53-0852-4558"]}
+{"id": "pii-0313", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows +91 41148 49076 as the owner of the deviation.", "must_not_contain": ["+91 41148 49076"]}
+{"id": "pii-0314", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from (001) 954-9592 yesterday about SKU-120.", "must_not_contain": ["(001) 954-9592"]}
+{"id": "pii-0315", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows ９５２-４６３-８７８０ as the owner of the deviation.", "must_not_contain": ["９５２-４６３-８７８０"]}
+{"id": "pii-0316", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use １９８-０８３-４１２４, thanks.", "must_not_contain": ["１９８-０８３-４１２４"]}
+{"id": "pii-0317", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use +91 88131 60737, thanks.", "must_not_contain": ["+91 88131 60737"]}
+{"id": "pii-0318", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use +91 64403 51091, thanks.", "must_not_contain": ["+91 64403 51091"]}
+{"id": "pii-0319", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: 274-666-2206", "must_not_contain": ["274-666-2206"]}
+{"id": "pii-0320", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows +91 64759 20946 as the owner of the deviation.", "must_not_contain": ["+91 64759 20946"]}
+{"id": "pii-0321", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use (587) 181-9304, thanks.", "must_not_contain": ["(587) 181-9304"]}
+{"id": "pii-0322", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use ２６１-９６６-８６９０, thanks.", "must_not_contain": ["２６１-９６６-８６９０"]}
+{"id": "pii-0323", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: +44-95-2750-2374", "must_not_contain": ["+44-95-2750-2374"]}
+{"id": "pii-0324", "split": "heldout", "entity": "PHONE", "text": "For the CAPA follow-up use 614 737 0562, thanks.", "must_not_contain": ["614 737 0562"]}
+{"id": "pii-0325", "split": "heldout", "entity": "PHONE", "text": "can u check lot status, my details: 924-509-0426", "must_not_contain": ["924-509-0426"]}
+{"id": "pii-0326", "split": "heldout", "entity": "PHONE", "text": "Who approved the release? Ping them via 086 472 2489 for details.", "must_not_contain": ["086 472 2489"]}
+{"id": "pii-0327", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from ６２３-２６４-５１８３ yesterday about SKU-120.", "must_not_contain": ["６２３-２６４-５１８３"]}
+{"id": "pii-0328", "split": "heldout", "entity": "PHONE", "text": "Reviewer record shows six three five zero one five zero seven five two as the owner of the deviation.", "must_not_contain": ["six three five zero one five zero seven five two"]}
+{"id": "pii-0329", "split": "heldout", "entity": "PHONE", "text": "FYI the supplier wrote from +91 66123 33901 yesterday about SKU-120.", "must_not_contain": ["+91 66123 33901"]}
+{"id": "pii-0330", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use passport number Y50624131, thanks.", "must_not_contain": ["Y50624131"]}
+{"id": "pii-0331", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via 305591232 for details.", "must_not_contain": ["305591232"]}
+{"id": "pii-0332", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 204.03.5578 as the owner of the deviation.", "must_not_contain": ["204.03.5578"]}
+{"id": "pii-0333", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: national ID D78568516", "must_not_contain": ["D78568516"]}
+{"id": "pii-0334", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from national ID D75474331 yesterday about SKU-120.", "must_not_contain": ["D75474331"]}
+{"id": "pii-0335", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from 406732261 yesterday about SKU-120.", "must_not_contain": ["406732261"]}
+{"id": "pii-0336", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows national ID B53227168 as the owner of the deviation.", "must_not_contain": ["B53227168"]}
+{"id": "pii-0337", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via passport number Z32438046 for details.", "must_not_contain": ["Z32438046"]}
+{"id": "pii-0338", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 059-56-5324 as the owner of the deviation.", "must_not_contain": ["059-56-5324"]}
+{"id": "pii-0339", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via national ID A48085184 for details.", "must_not_contain": ["A48085184"]}
+{"id": "pii-0340", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: passport number X04893520", "must_not_contain": ["X04893520"]}
+{"id": "pii-0341", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from passport number X72187843 yesterday about SKU-120.", "must_not_contain": ["X72187843"]}
+{"id": "pii-0342", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: passport number Z08609541", "must_not_contain": ["Z08609541"]}
+{"id": "pii-0343", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use 058-91-5033, thanks.", "must_not_contain": ["058-91-5033"]}
+{"id": "pii-0344", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 313.93.3032 as the owner of the deviation.", "must_not_contain": ["313.93.3032"]}
+{"id": "pii-0345", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 378.30.3163 as the owner of the deviation.", "must_not_contain": ["378.30.3163"]}
+{"id": "pii-0346", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via 270-39-4546 for details.", "must_not_contain": ["270-39-4546"]}
+{"id": "pii-0347", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 802.33.4635 as the owner of the deviation.", "must_not_contain": ["802.33.4635"]}
+{"id": "pii-0348", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via 056-70-1780 for details.", "must_not_contain": ["056-70-1780"]}
+{"id": "pii-0349", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: 103.86.2143", "must_not_contain": ["103.86.2143"]}
+{"id": "pii-0350", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 937-25-4416 as the owner of the deviation.", "must_not_contain": ["937-25-4416"]}
+{"id": "pii-0351", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows national ID C29202372 as the owner of the deviation.", "must_not_contain": ["C29202372"]}
+{"id": "pii-0352", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows national ID A53247527 as the owner of the deviation.", "must_not_contain": ["A53247527"]}
+{"id": "pii-0353", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows national ID A09260665 as the owner of the deviation.", "must_not_contain": ["A09260665"]}
+{"id": "pii-0354", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from 708-93-8161 yesterday about SKU-120.", "must_not_contain": ["708-93-8161"]}
+{"id": "pii-0355", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use national ID B70441580, thanks.", "must_not_contain": ["B70441580"]}
+{"id": "pii-0356", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use passport number X90354705, thanks.", "must_not_contain": ["X90354705"]}
+{"id": "pii-0357", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: 386297145", "must_not_contain": ["386297145"]}
+{"id": "pii-0358", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via my social security number is 785 71 6496 for details.", "must_not_contain": ["my social security number is 785 71 6496"]}
+{"id": "pii-0359", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from my social security number is 733 84 2797 yesterday about SKU-120.", "must_not_contain": ["my social security number is 733 84 2797"]}
+{"id": "pii-0360", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: 744.49.6204", "must_not_contain": ["744.49.6204"]}
+{"id": "pii-0361", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via national ID B73042885 for details.", "must_not_contain": ["B73042885"]}
+{"id": "pii-0362", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from 234.93.8856 yesterday about SKU-120.", "must_not_contain": ["234.93.8856"]}
+{"id": "pii-0363", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via passport number Z94587520 for details.", "must_not_contain": ["Z94587520"]}
+{"id": "pii-0364", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via 951.29.7349 for details.", "must_not_contain": ["951.29.7349"]}
+{"id": "pii-0365", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via 304-02-1500 for details.", "must_not_contain": ["304-02-1500"]}
+{"id": "pii-0366", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from 375835271 yesterday about SKU-120.", "must_not_contain": ["375835271"]}
+{"id": "pii-0367", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 594671491 as the owner of the deviation.", "must_not_contain": ["594671491"]}
+{"id": "pii-0368", "split": "heldout", "entity": "SSN", "text": "FYI the supplier wrote from 545.37.8420 yesterday about SKU-120.", "must_not_contain": ["545.37.8420"]}
+{"id": "pii-0369", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use national ID D15125341, thanks.", "must_not_contain": ["D15125341"]}
+{"id": "pii-0370", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use 338-68-9891, thanks.", "must_not_contain": ["338-68-9891"]}
+{"id": "pii-0371", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use 520.51.7722, thanks.", "must_not_contain": ["520.51.7722"]}
+{"id": "pii-0372", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via my social security number is 774 83 0353 for details.", "must_not_contain": ["my social security number is 774 83 0353"]}
+{"id": "pii-0373", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use 408491805, thanks.", "must_not_contain": ["408491805"]}
+{"id": "pii-0374", "split": "heldout", "entity": "SSN", "text": "can u check lot status, my details: passport number X92970396", "must_not_contain": ["X92970396"]}
+{"id": "pii-0375", "split": "heldout", "entity": "SSN", "text": "Reviewer record shows 834-17-4278 as the owner of the deviation.", "must_not_contain": ["834-17-4278"]}
+{"id": "pii-0376", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via 659209595 for details.", "must_not_contain": ["659209595"]}
+{"id": "pii-0377", "split": "heldout", "entity": "SSN", "text": "Who approved the release? Ping them via national ID B96243971 for details.", "must_not_contain": ["B96243971"]}
+{"id": "pii-0378", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use 798.88.2228, thanks.", "must_not_contain": ["798.88.2228"]}
+{"id": "pii-0379", "split": "heldout", "entity": "SSN", "text": "For the CAPA follow-up use 911731880, thanks.", "must_not_contain": ["911731880"]}
+{"id": "pii-0380", "split": "heldout", "entity": "CREDIT_CARD", "text": "FYI the supplier wrote from 5191042760328476 yesterday about SKU-120.", "must_not_contain": ["519104276032", "5191042760328476"]}
+{"id": "pii-0381", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 4300-9757-5732-4761 for details.", "must_not_contain": ["430097575732", "4300-9757-5732-4761"]}
+{"id": "pii-0382", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 6011-7937-7777-3650, thanks.", "must_not_contain": ["601179377777", "6011-7937-7777-3650"]}
+{"id": "pii-0383", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 6011 0581 0517 7531, thanks.", "must_not_contain": ["601105810517", "6011 0581 0517 7531"]}
+{"id": "pii-0384", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 3756 5535 6806 3224 for details.", "must_not_contain": ["375655356806", "3756 5535 6806 3224"]}
+{"id": "pii-0385", "split": "heldout", "entity": "CREDIT_CARD", "text": "FYI the supplier wrote from 6011 3426 7999 8005 yesterday about SKU-120.", "must_not_contain": ["601134267999", "6011 3426 7999 8005"]}
+{"id": "pii-0386", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 4952 7349 8930 6638 for details.", "must_not_contain": ["495273498930", "4952 7349 8930 6638"]}
+{"id": "pii-0387", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 6011-9324-3177-4031", "must_not_contain": ["601193243177", "6011-9324-3177-4031"]}
+{"id": "pii-0388", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4174966541995332", "must_not_contain": ["417496654199", "4174966541995332"]}
+{"id": "pii-0389", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 4614-2891-8609-3729, thanks.", "must_not_contain": ["461428918609", "4614-2891-8609-3729"]}
+{"id": "pii-0390", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 4380 3409 5878 0225, thanks.", "must_not_contain": ["438034095878", "4380 3409 5878 0225"]}
+{"id": "pii-0391", "split": "heldout", "entity": "CREDIT_CARD", "text": "Reviewer record shows 4864-8446-9303-7721 as the owner of the deviation.", "must_not_contain": ["486484469303", "4864-8446-9303-7721"]}
+{"id": "pii-0392", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4566-0958-4259-3004", "must_not_contain": ["456609584259", "4566-0958-4259-3004"]}
+{"id": "pii-0393", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 4595-0652-7382-3597, thanks.", "must_not_contain": ["459506527382", "4595-0652-7382-3597"]}
+{"id": "pii-0394", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 5121502101564951, thanks.", "must_not_contain": ["512150210156", "5121502101564951"]}
+{"id": "pii-0395", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 6011-8953-6243-8449 for details.", "must_not_contain": ["601189536243", "6011-8953-6243-8449"]}
+{"id": "pii-0396", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4213 7762 7927 2256", "must_not_contain": ["421377627927", "4213 7762 7927 2256"]}
+{"id": "pii-0397", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 6011998563903995", "must_not_contain": ["601199856390", "6011998563903995"]}
+{"id": "pii-0398", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4933263756986640", "must_not_contain": ["493326375698", "4933263756986640"]}
+{"id": "pii-0399", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 6011 3399 3815 788", "must_not_contain": ["601133993815", "6011 3399 3815 788"]}
+{"id": "pii-0400", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4941-6241-8415-510", "must_not_contain": ["494162418415", "4941-6241-8415-510"]}
+{"id": "pii-0401", "split": "heldout", "entity": "CREDIT_CARD", "text": "Reviewer record shows 4597-5275-6706-6231 as the owner of the deviation.", "must_not_contain": ["459752756706", "4597-5275-6706-6231"]}
+{"id": "pii-0402", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4200-4610-3751-2906", "must_not_contain": ["420046103751", "4200-4610-3751-2906"]}
+{"id": "pii-0403", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4995-5282-7379-7505", "must_not_contain": ["499552827379", "4995-5282-7379-7505"]}
+{"id": "pii-0404", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 5119-1602-5633-4888 for details.", "must_not_contain": ["511916025633", "5119-1602-5633-4888"]}
+{"id": "pii-0405", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 601182199330472", "must_not_contain": ["601182199330", "601182199330472"]}
+{"id": "pii-0406", "split": "heldout", "entity": "CREDIT_CARD", "text": "Reviewer record shows 6011-7867-7038-0309 as the owner of the deviation.", "must_not_contain": ["601178677038", "6011-7867-7038-0309"]}
+{"id": "pii-0407", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 6011385381239077", "must_not_contain": ["601138538123", "6011385381239077"]}
+{"id": "pii-0408", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 4968805012974501, thanks.", "must_not_contain": ["496880501297", "4968805012974501"]}
+{"id": "pii-0409", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 378246409245761", "must_not_contain": ["378246409245", "378246409245761"]}
+{"id": "pii-0410", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 6011 3870 3740 465", "must_not_contain": ["601138703740", "6011 3870 3740 465"]}
+{"id": "pii-0411", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4996 5123 9821 364", "must_not_contain": ["499651239821", "4996 5123 9821 364"]}
+{"id": "pii-0412", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 5186-1170-1098-9843, thanks.", "must_not_contain": ["518611701098", "5186-1170-1098-9843"]}
+{"id": "pii-0413", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 5179818003946653 for details.", "must_not_contain": ["517981800394", "5179818003946653"]}
+{"id": "pii-0414", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 5162-7664-3469-0532 for details.", "must_not_contain": ["516276643469", "5162-7664-3469-0532"]}
+{"id": "pii-0415", "split": "heldout", "entity": "CREDIT_CARD", "text": "Reviewer record shows 3735 9885 4077 395 as the owner of the deviation.", "must_not_contain": ["373598854077", "3735 9885 4077 395"]}
+{"id": "pii-0416", "split": "heldout", "entity": "CREDIT_CARD", "text": "For the CAPA follow-up use 3729-1666-8440-5270, thanks.", "must_not_contain": ["372916668440", "3729-1666-8440-5270"]}
+{"id": "pii-0417", "split": "heldout", "entity": "CREDIT_CARD", "text": "Who approved the release? Ping them via 3722-5192-7775-295 for details.", "must_not_contain": ["372251927775", "3722-5192-7775-295"]}
+{"id": "pii-0418", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 4316 0102 0836 5965", "must_not_contain": ["431601020836", "4316 0102 0836 5965"]}
+{"id": "pii-0419", "split": "heldout", "entity": "CREDIT_CARD", "text": "can u check lot status, my details: 3755-4382-4572-3401", "must_not_contain": ["375543824572", "3755-4382-4572-3401"]}

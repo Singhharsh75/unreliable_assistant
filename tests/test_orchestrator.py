@@ -1,9 +1,11 @@
 """Gate 7 — subagent topology end to end: Verification Subagent veto, route dispatch, audit, HITL status."""
 import asyncio
 import hashlib
+import os
 from typing import Any
 from uuid import uuid4
 
+import pytest
 from pydantic import BaseModel, ConfigDict
 
 from contracts.models import ABSTAIN_TEXT, CallContext, Chunk, HybridRetrieveIn, HybridRetrieveOut
@@ -229,3 +231,32 @@ def test_claim_joining_two_observations_is_grounded():
                FinalAnswer("LOT-00044 is RELEASED and release request apr_1 is PENDING_APPROVAL."))
     r = run(w, "Release LOT-00044", planner=p)
     assert r["status"] == "PENDING_APPROVAL" and r["answer"].startswith("LOT-00044 is RELEASED")
+
+
+# --- NLI verifier ------------------------------------------------------------------
+
+def _fake_entail(pairs):  # entailed iff every hypothesis content word of "stored"/"kept" synonyms; here: negation-aware stub
+    return [(0.0, 0.9) if " not " in h else (0.0, 0.0) if "personally" in h else (0.9, 0.0) for _, h in pairs]
+
+
+def test_nli_accepts_paraphrase_the_lexical_check_vetoes():
+    claim = "Refrigerated products have to be kept at 2-8 C."
+    assert not verify(claim, [("c1", COLD)]).grounded
+    assert verify("Cold-chain products are kept chilled at 2 to 8 degrees.", [("c1", COLD)], _fake_entail).grounded
+
+
+def test_nli_keeps_exact_number_precondition():
+    assert not verify("Cold-chain SKUs are stored between 2 and 18 degrees Celsius.", [("c1", COLD)], lambda p: [(1.0, 0.0)] * len(p)).grounded
+
+
+def test_nli_contradiction_vetoes_a_lexical_pass():
+    v = verify("Cold-chain SKUs are not stored between 2 and 8 degrees Celsius.", [("c1", COLD)], _fake_entail)
+    assert not v.grounded
+
+
+@pytest.mark.skipif(os.getenv("SKIP_NLI") == "1", reason="downloads the NLI model")
+def test_real_nli_model_separates_entailment_from_contradiction():
+    from triage.nli import entailment
+    (ok, _), (bad, contra) = entailment([(COLD, "Cold-chain SKUs are kept between 2 and 8 degrees Celsius."),
+                                         (COLD, "Cold-chain SKUs must never be refrigerated.")])
+    assert ok > 0.5 > bad and contra > 0.5

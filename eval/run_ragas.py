@@ -62,7 +62,7 @@ EVAL = Path(__file__).resolve().parent
 GOLDEN, RUNS = EVAL / "golden_dataset.jsonl", EVAL / "runs"
 INPUTS, ANSWERS, REPORT = RUNS / "retrieval.jsonl", RUNS / "answers.jsonl", RUNS / "ragas_report.json"
 SYSTEM = ("You answer questions for a regulated manufacturing assistant using ONLY the numbered context chunks. "
-          "Be concise and specific. If the chunks do not contain the answer, reply exactly: " + ABSTAIN_TEXT)
+          "Be concise and specific: phrase each claim close to the wording of the chunk that supports it, one claim per sentence. If the chunks do not contain the answer, reply exactly: " + ABSTAIN_TEXT)
 
 
 def read(p: Path) -> list[dict]:

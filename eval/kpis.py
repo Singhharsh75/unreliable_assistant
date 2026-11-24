@@ -87,7 +87,7 @@ KPIS = [Kpi(*row) for row in [
     ("KPI-21", "Generation", "RAGAS answer relevancy", ">=", 0.90, "score", "eval/runs/ragas_report.json"),
     ("KPI-22", "Generation", "RAGAS context entity recall", ">=", 0.85, "score", "eval/runs/ragas_report.json"),
     ("KPI-23", "Generation", "Unanswerable-query abstention accuracy", ">=", 0.98, "ratio", "eval/runs/answers.jsonl"),
-    ("KPI-24", "Generation", "Unsupported claim rate", "<=", 0.005, "ratio", "claim verifier on answers.jsonl"),
+    ("KPI-24", "Generation", "Unsupported claim rate", "<=", 0.005, "ratio", "NLI claim verifier on answers.jsonl"),
     ("KPI-25", "Generation", "TTFT p95", "<=", 180, "ms", "FastAPI stream metric"),
     ("KPI-26", "Token & Graphify", "Prompt token reduction", ">=", 0.45, "ratio", "token counter hook"),
     ("KPI-27", "Token & Graphify", "Semantic cache hit ratio", ">=", 0.35, "ratio", "Redis hit/miss"),
@@ -395,7 +395,8 @@ def generation_kpis() -> list[Result]:
     ans_path = RUNS / "answers.jsonl"
     if not ans_path.exists():
         return out + [judge(k, None, note="no answers.jsonl; run eval/run_ragas.py answer") for k in ("KPI-23", "KPI-24")]
-    from triage.verifier import verify
+    from triage.nli import entailment
+    from triage.verifier import verify, with_question
 
     rows = read(ans_path)
     neg = [r for r in rows if r["category"] == "negative"]
@@ -405,7 +406,7 @@ def generation_kpis() -> list[Result]:
     for r in rows:
         if r["category"] == "negative" or r["response"] == ABSTAIN_TEXT:
             continue
-        v = verify(r["response"], [(str(i), t) for i, t in enumerate(r["retrieved_contexts"])])
+        v = verify(r["response"], with_question(r["question"], [(str(i), t) for i, t in enumerate(r["retrieved_contexts"])]), entailment)
         claims += len(v.claims)
         unsupported += sum(c.source is None for c in v.claims)
     out.append(judge("KPI-24", unsupported / claims if claims else None,

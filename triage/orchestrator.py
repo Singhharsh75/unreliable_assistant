@@ -26,7 +26,7 @@ from observability.incidents import RuntimeConfig
 from observability.tracing import current_traceparent, parent_context, span
 from triage.classifier import TriageResult, classify
 from triage.subagents import SUBAGENTS, ScopedHarness, canned_response
-from triage.verifier import extractive_quote, verify
+from triage.verifier import Entail, extractive_quote, verify, with_question
 
 log = logging.getLogger("triage.orchestrator")
 _ABSTAIN_KEY = ABSTAIN_TEXT.rstrip(".").lower()
@@ -78,7 +78,9 @@ class Orchestrator:
         auditor: RagasAuditor | None = None,
         llm_pool: Bulkhead | None = None,
         config: RuntimeConfig | None = None,
+        entail: Entail | None = None,
     ) -> None:
+        self.entail = entail  # NLI scorer (triage.nli.entailment); None keeps the lexical verifier
         self.retrieval = ScopedHarness(harness, SUBAGENTS["retrieval"])
         self.execution = ScopedHarness(harness, SUBAGENTS["execution"])
         self.verification = ScopedHarness(harness, SUBAGENTS["verification"])
@@ -147,10 +149,15 @@ class Orchestrator:
             return None
         uri = {c.chunk_hash: c.uri for c in r.chunks}
         with span("verify.nli") as s:
-            v = verify(draft, [(c.chunk_hash, c.text) for c in r.chunks])
+            v = verify(draft, with_question(query, [(c.chunk_hash, c.text) for c in r.chunks]), self.entail)
             s.set_attribute("grounded", v.grounded)
         if v.grounded:
-            out.update(answer=draft, citations=[uri[h] for h in v.sources], faithfulness=v.faithfulness)
+            out.update(answer=draft, citations=[uri[h] for h in v.sources if h in uri], faithfulness=v.faithfulness)
+        elif self.entail is not None:
+            # NLI veto: the draft's claims are not entailed by the context, so the context does not answer the
+            # question. Abstain (KPI-23) rather than quote; a quote would count as an answer.
+            out.update(answer=ABSTAIN_TEXT, abstained=True)
+            return v.faithfulness
         else:
             # Veto: release only a verbatim quote of the top reranked chunk (it passed the 0.42 relevance cutoff),
             # never the ungrounded draft. The audit keeps the draft's score so KPI-24 still counts the hallucination.
