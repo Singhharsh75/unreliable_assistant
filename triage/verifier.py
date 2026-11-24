@@ -128,3 +128,38 @@ def extractive_quote(text: str, max_chars: int = 400) -> str:
             break
         out = f"{out} {s}".strip()
     return out[:max_chars]
+
+
+def _gloss(o: dict) -> str:
+    """Plain-language facts the system can state about one successful call, so a claim about an empty result or about the
+    request that was filed has something to be checked against. Only structured fields count: the free-text
+    justification of a submitted request is never a source."""
+    import json
+
+    out = [json.dumps(o["result"], default=str)]
+    if isinstance(o["result"], dict):
+        out += [f"No {k} are saved or found for this session. The {k} list is empty." for k, v in o["result"].items() if v == []]
+    if o["tool"] == "put_session_fact" and isinstance(o.get("args"), dict):
+        f = o["args"].get("fact")
+        if isinstance(f, dict):
+            out.append(f"The session fact {f.get('key')} = {f.get('value')} was saved.")
+    if o["tool"] == "submit_transaction" and isinstance(o.get("args"), dict):
+        a = o["args"]
+        out.append(f"A {a.get('action')} request was submitted with {json.dumps(a.get('payload'), default=str)}; "
+                   "it is waiting for human reviewer approval and has not been executed.")
+    return " ".join(out)
+
+
+def observation_sources(observations: list[dict]) -> list[tuple[str, str]]:
+    """Claim-check sources for a ReAct answer: every successful tool result (with `_gloss`), one combined source (a claim
+    may join facts from two results), and every failed call as its own source, so an honest "that lot does not exist" is
+    grounded in the system's error text. Failure text is written by the harness and tools, never by the model or the user.
+    When nothing was submitted, the system itself states that no request was filed and nothing was changed."""
+    ok = [(o["tool"], _gloss(o)) for o in observations if o.get("ok")]
+    failed = [(f"{o['tool']}:error", f"{o['tool']} failed: {o.get('error', '')} {o.get('detail', '')}"
+               + (" The record was not found and does not exist." if o.get("error") == "INVALID_PARAMS" else ""))
+              for o in observations if not o.get("ok")]
+    extra = []
+    if not any(o.get("ok") and o["tool"] == "submit_transaction" for o in observations):
+        extra.append(("no-submission", "No request was submitted or filed. Nothing was released, held, quarantined or changed."))
+    return ok + [("observations", " ".join(t for _, t in ok + extra))] + failed + extra

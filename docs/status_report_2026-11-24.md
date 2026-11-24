@@ -2,22 +2,22 @@
 
 **Scope:** state of the build against the 18-gate blueprint (`Unreliable_Assistant_MidCheck_Enterprise_Blueprint_v2.docx`), what was closed in this session, what is left, and why 12 KPIs are not measured.
 **Sources:** `eval/runs/kpi_report.json` (`uv run eval/kpis.py --live`), `design.md` (ADR-001 to ADR-016), the repository tree, and `docs/gates_7-12_fixes_and_next_steps.md`.
-**Test suite:** 177 passed, 1 skipped (`uv run pytest`).
+**Test suite:** 188 passed (`uv run pytest`).
 
 ## 1. Summary
 
 All 18 gates have code or a document behind them. The safety blockers are closed, but the system is **not release-ready**, for three reasons:
 
 1. Retrieval latency (KPI-08, KPI-09) fails on the available CPU-only hardware.
-2. Twelve KPIs are not measured because they need an LLM planner, production traffic, LLM spend, or a 50K-user load environment.
+2. Eight KPIs are not measured because they need production traffic, a streamed Claude run, or a 50K-user load environment. Two more fail (KPI-17, KPI-18) now that the LLM planner exists and they can be measured.
 3. Several production-infrastructure items in the blueprint are not built (section 4).
 
 | Status | Count |
 |---|---|
-| PASS | 19 |
-| FAIL | 2 (KPI-08, KPI-09) |
+| PASS | 21 |
+| FAIL | 4 (KPI-08, 09, 17, 18) |
 | WAIVED (ADR-009) | 3 (KPI-20, 21, 22) |
-| NOT_MEASURED | 12 |
+| NOT_MEASURED | 8 |
 
 Release blockers (safety KPIs 02, 03, 16, 19, 24, 28): none open.
 
@@ -35,6 +35,22 @@ Caveats that matter for sign-off:
 - **KPI-24:** the judge is the same model family as the generator (Sonnet 5.5), and 548 claims is a small sample (one miss is 0.18 points). The judge skips sentences equal to the abstention text; that rule was added after a first run scored 0.9%, and ADR-016 says so. Re-check with a judge from a different family.
 - **KPI-24 cost:** 37 of 198 answerable drafts (19%) are vetoed to abstention. This lowers answer coverage. Fixing it needs a verifier that accepts valid derivations, not a stricter generator.
 - The generator prompt change lowered the draft rate only from 8.4% to 6.3%. About 90% of rejected claims are derivations (counts, dates, arithmetic) that the NLI model cannot entail from one chunk.
+
+## 2b. LLM planner and KPI-14, 17, 18 (ADR-017)
+
+`TRANSACTION_EXEC` no longer halts: `triage/llm_planner.py` is wired into `api/main.py`, with loop budgets widened for a remote LLM (10 s per step, 25 s total; the blueprint's 250 ms step cannot hold). Measured with `eval/planner_eval.py` on 30 fixed tasks (Sonnet 5.5; four runs agree within one task, 26 to 28 of 30 complete):
+
+| KPI | Result | Target | Status |
+|---|---|---|---|
+| KPI-14 first-pass tool-call validity | 0.978 | 0.96 | PASS |
+| KPI-17 mean ReAct steps | 2.54 | 2.2 | FAIL |
+| KPI-18 goal cosine | 0.711 | 0.85 | FAIL |
+
+- **KPI-17:** a read takes 2 steps and a write takes 3 (lookup, submit, answer), so the 14-of-30 write mix sets the number. Reaching 2.2 would mean dropping the read-before-write rule, so it was not done.
+- **KPI-18:** unrelated-task steps score 0.60 against a goal and the first and last steps of a run score 0.68 and 0.71, so alignment does not decay, but 0.85 is not reachable with this metric. The target needs redefining, for example relative to the unrelated baseline.
+- **Verifier changes found while wiring:** the loop's claim check was lexical-only and vetoed correct paraphrases (22 of 30 tasks vetoed at first). It now uses NLI, plus system-written sources for failed calls, empty results and the filed request.
+- **Production verifier was lexical-only:** the API built the orchestrator without the NLI scorer, so the deployed service did not run the configuration ADR-016 measured. The API now passes NLI. **Re-measure KPI-24 end to end through the API before sign-off.**
+- **Limits:** derived comparisons ("both lots have the same status") are still vetoed; the task set is hand-written, not production traffic.
 
 ## 3. KPIs not at spec
 
@@ -61,7 +77,7 @@ Latency numbers vary run to run on this shared machine (KPI-08 read 124, 483 and
 
 **Functional**
 
-- No LLM planner: `TRANSACTION_EXEC` halts, the Execution Subagent cannot complete a transaction, and Tab 1's ReAct trace is empty.
+- Tab 1's ReAct trace is still empty: the planner exists, but the workbench does not display its steps yet.
 - `SubmitTransactionIn.payload` has no per-action schema, so junk values become PENDING_APPROVAL records.
 - Every API caller gets `TIER_2_COMPUTE` until a gateway maps roles.
 - Incident runbooks for latency, cache leak and MCP hang change config but do nothing (no semantic cache, Redis or read replica). The hallucination runbook would fire at once once online RAGAS is on: faithfulness is 0.853 against a 0.90 trigger.
@@ -69,24 +85,21 @@ Latency numbers vary run to run on this shared machine (KPI-08 read 124, 483 and
 - `graph_subgraph` is skipped in the retrieval flow.
 - CI (`.github/workflows/ci.yml`) exits 1 on any FAIL, so it fails while KPI-08 and KPI-09 do.
 
-## 5. Why 12 KPIs are not measured
+## 5. Why 8 KPIs are not measured
 
 | KPI | Reason | What unlocks it |
 |---|---|---|
-| 14 Tool schema first-pass validation | Defined as a production rate from `mcp.client` spans; there is no planner producing tool calls | An LLM planner plus a task set (in progress) |
-| 17 Mean ReAct steps | Needs real planner traces | Same |
-| 18 Context drift (goal cosine) | Needs real planner traces | Same |
 | 25 TTFT p95 | Needs a streamed run against Claude; load runs use the stub generator on purpose | A short streamed run with LLM spend |
 | 26 Prompt token reduction | Needs generated `indexes/graph.json` (a build artifact, git-ignored) | `uv run mcp_servers/graphify.py build`; then included in the live run |
 | 27 Cache hit ratio | Steady state needs production traffic; replaying the golden set measures only the replay | Production traffic |
 | 29 Cost per 1,000 queries | Needs production token usage | Production traffic |
 | 31 to 35 Latency, 5xx and throughput at 50K VUs | The KPI judge scores them only from a k6 run that reached 50K VUs (ADR-011). Best run here: 4 VUs, 1.7 RPS, p95 2.6 s | A distributed load environment |
 
-KPI-26 was regained when `graph.json` was rebuilt. KPI-10 (recall@50 = 0.948, PASS) came back with the `--live` run. Non-live runs overwrite `kpi_report.json` and drop both, so run `--live` for any report that is kept.
+KPI-26 (0.574) was regained when `graph.json` was rebuilt, and KPI-10 (0.948) came back with the `--live` run; KPI-14, 17 and 18 now have a source (section 2b). Non-live runs overwrite `kpi_report.json` and drop both, so run `--live` for any report that is kept.
 
 ## 6. Suggested order of work
 
-1. Build the LLM planner and measure KPI-14, 17 and 18 (in progress; see ADR-017 once written).
+1. Redefine KPI-18 (and decide on KPI-17's task mix) in an ADR, and re-measure KPI-24 through the API with NLI.
 2. Add per-action payload schemas and bound the idempotency cache. Both are small.
 3. Write a waiver ADR for KPI-08 and KPI-09 on CPU-only hardware, or measure on target hardware. This also unblocks CI.
 4. Add the plugin registry and `mcp_config.json`.
@@ -96,4 +109,4 @@ KPI-26 was regained when `graph.json` was rebuilt. KPI-10 (recall@50 = 0.948, PA
 
 ## 7. State of the working tree
 
-The KPI-03 and KPI-24 changes, ADR-015 and ADR-016, and the regenerated `eval/runs/answers.jsonl` are not yet committed. Backups of the previous answers and report are in `eval/runs/*.pre-kpi24.*`.
+The KPI-03 and KPI-24 changes, the LLM planner and verifier changes, ADR-015 to ADR-017, the new `eval/planner_eval.py` and `eval/released_judge.py`, and the regenerated `eval/runs/answers.jsonl` are not yet committed. Backups of the previous answers and report are in `eval/runs/*.pre-kpi24.*`.

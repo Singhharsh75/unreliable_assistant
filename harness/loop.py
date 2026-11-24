@@ -217,7 +217,7 @@ class BoundedLoop:
                     value = res.value.model_dump(mode="json") if isinstance(res.value, BaseModel) else res.value
                     if self.observation_gate and not self.observation_gate(json.dumps(value, default=str)):
                         raise HarnessError(INJECTION_BLOCKED, f"{action.tool} output reads as an instruction")
-                    obs = {"tool": action.tool, "ok": True, "result": value}
+                    obs = {"tool": action.tool, "ok": True, "result": value, "args": action.args}
                     compressed = compress_observation(value)
                 except HarnessError as e:
                     if e.code == CIRCUIT_OPEN:  # the pool is open: retrying inside this run cannot succeed
@@ -245,7 +245,7 @@ class BoundedLoop:
                     return halt(State.HALTED_BREAKER, f"breaker tripped on {action.tool} after {failures[key]} failures",
                                 remediation=remediation_for(action.tool, obs["error"], failures[key]))
 
-                digest = canonical_hash(obs)
+                digest = canonical_hash({k: v for k, v in obs.items() if k != "args"})  # args feed the verifier, not the progress check
                 if digest == last_digest:
                     # Same observation as the last step: nothing changed, so another REASONING pass cannot make progress.
                     return halt(State.HALTED, "no state change since last observation")

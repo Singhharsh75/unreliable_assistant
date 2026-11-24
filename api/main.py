@@ -31,7 +31,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from contracts.models import TENANT_RE, USER_RE, Chunk, GraphSubgraphIn, HybridRetrieveIn
 from context.cache import AnswerCache
-from harness import ToolExecutionHarness, ToolSpec, default_bulkheads
+from harness import LoopConfig, ToolExecutionHarness, ToolSpec, default_bulkheads
 from observability.tracing import setup_tracing
 from triage import ClaudeGenerator, Orchestrator
 
@@ -103,7 +103,31 @@ def build_orchestrator() -> Orchestrator:
         generator: Any = StubGenerator()
     else:
         generator = ClaudeGenerator()
-    return Orchestrator(harness, generator, None, llm_pool=bulkheads["llm"], cache=AnswerCache())  # no LLM planner yet: TRANSACTION_EXEC halts
+    from triage.nli import entailment
+
+    planner = None if os.getenv("LLM_STUB") else build_planner(servers["mcp-state-store"])
+    # NLI verifier on every path (ADR-013, ADR-016: KPI-24 is measured on this configuration). The loop's step budgets are
+    # widened for a remote LLM planner (ADR-017): the blueprint's 250 ms step cannot hold, and the 30 s request timeout wraps it.
+    cfg = LoopConfig(per_step_timeout_s=2.0, total_loop_budget_s=25.0, llm_step_timeout_s=10.0)
+    return Orchestrator(harness, generator, planner, llm_pool=bulkheads["llm"], cache=AnswerCache(), entail=entailment,
+                        loop_config=cfg)
+
+
+def build_planner(state_specs: list[ToolSpec]) -> Any:
+    """ADR-017: the Execution Subagent's LLM planner, bound to the state-store tools its allow-list names."""
+    from triage.llm_planner import LLMPlanner
+    from triage.subagents import SUBAGENTS
+
+    models = {s.name: s.input_model for s in state_specs if s.name in SUBAGENTS["execution"].allowed_tools}
+    client: list[Any] = []
+
+    async def complete(system: str, user: str) -> str | None:
+        from eval.run_ragas import GENERATOR, complete as llm_complete, make_client  # lazy: the eval module imports ragas
+
+        client[:] = client or [make_client()]
+        return await llm_complete(client[0], GENERATOR, user, system=system)
+
+    return LLMPlanner(complete, models)
 
 
 latency = _Latency()

@@ -35,7 +35,7 @@ from observability.incidents import RuntimeConfig
 from observability.tracing import current_traceparent, parent_context, span
 from triage.classifier import TriageResult, classify
 from triage.subagents import SUBAGENTS, ScopedHarness, canned_response
-from triage.verifier import Entail, extractive_quote, verify, with_question
+from triage.verifier import Entail, extractive_quote, observation_sources, verify, with_question
 
 log = logging.getLogger("triage.orchestrator")
 _ABSTAIN_KEY = ABSTAIN_TEXT.rstrip(".").lower()
@@ -89,17 +89,16 @@ class ClaudeGenerator:
 class _VerifiedPlanner:
     """The loop's VERIFY step is the Verification Subagent's claim check against the tool observations."""
 
-    def __init__(self, inner: Planner) -> None:
-        self.inner = inner
+    def __init__(self, inner: Planner, entail: Entail | None = None) -> None:
+        self.inner, self.entail = inner, entail
 
     async def reason(self, prompt: ReActPrompt) -> ToolAction | FinalAnswer:
         return await self.inner.reason(prompt)
 
     async def verify(self, answer: str, observations: list[dict[str, Any]]) -> bool:
-        sources = [(o["tool"], json.dumps(o["result"], default=str)) for o in observations if o.get("ok")]
-        # One claim may join facts from two tool results (lot status + approval id), so also check against all of them.
-        sources.append(("observations", " ".join(t for _, t in sources)))
-        return verify(answer, sources).grounded
+        # One claim may join facts from two tool results (lot status + approval id), and a failed call is a source for
+        # reporting the failure (triage.verifier.observation_sources). With NLI, a correct paraphrase of a tool result passes.
+        return verify(answer, observation_sources(observations), self.entail).grounded
 
 
 class Orchestrator:
@@ -313,7 +312,7 @@ class Orchestrator:
     async def _execute(self, query: str, base: dict[str, Any], tier: Tier, out: dict[str, Any]) -> None:
         if self.planner is None:
             raise RuntimeError("TRANSACTION_EXEC needs a planner")
-        loop = BoundedLoop(self.execution, _VerifiedPlanner(self.planner), self.loop_config, memory=self.memory,  # type: ignore[arg-type]
+        loop = BoundedLoop(self.execution, _VerifiedPlanner(self.planner, self.entail), self.loop_config, memory=self.memory,  # type: ignore[arg-type]
                            observation_gate=_tool_output_ok)
         res = await loop.run(query, base_ctx=base, caller_tier=tier)
         pending = next((o["result"] for o in res.observations

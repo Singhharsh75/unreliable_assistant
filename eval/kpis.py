@@ -105,10 +105,27 @@ KPIS = [Kpi(*row) for row in [
 BY_ID = {k.id: k for k in KPIS}
 
 NOT_BUILT = {
-    "KPI-14": "production rate from mcp.client spans (error.code, repairs); no offline traffic to measure",
-    "KPI-17": "needs an LLM planner and production traces; only scripted planners exist",
-    "KPI-18": "needs an LLM planner and production traces; only scripted planners exist",
+    "KPI-14": "needs eval/runs/planner_eval.json; run eval/planner_eval.py (real LLM calls)",
+    "KPI-17": "needs eval/runs/planner_eval.json; run eval/planner_eval.py (real LLM calls)",
+    "KPI-18": "needs eval/runs/planner_eval.json; run eval/planner_eval.py (real LLM calls)",
 }
+
+
+def planner_kpis() -> list[Result]:
+    """KPI-14/17/18 from the LLM-planner eval (ADR-017): a fixed 30-task set, not production traffic."""
+    p = RUNS / "planner_eval.json"
+    if not p.exists():
+        return [judge(k, v and None, note=v) for k, v in NOT_BUILT.items()]
+    r = json.loads(p.read_text())
+    src = "eval/planner_eval.py (LLM planner, 30 scripted tasks, not production traffic)"
+    return [
+        judge("KPI-14", r["kpi14_first_pass"], source=src, note=f"{r['tool_calls']} tool calls; a regex repair, schema failure or unknown tool counts as a miss"),
+        judge("KPI-17", r["kpi17_mean_steps"], source=src,
+              note=f"{r['completed']}/{r['tasks']} tasks completed; read = 2 steps, write = lookup + submit + answer = 3; the task mix sets this number"),
+        judge("KPI-18", r["kpi18_mean_cosine"], source=src,
+              note=f"goal vs step (thought + action), bge-large; unrelated-task baseline {r['kpi18_unrelated_baseline']:.2f}, "
+                   f"first step {r['kpi18_first_step']:.2f}, last step {r['kpi18_last_step']:.2f} (no decay over the run)"),
+    ]
 
 
 def p95(xs: list[float]) -> float:
@@ -577,7 +594,7 @@ def load_kpis() -> list[Result]:
 def measure(live: bool = False) -> list[Result]:
     got = {r.id: r for r in [*triage_kpis(), *guardrail_kpis(), *retrieval_kpis(live), repair_kpi(), chaos_kpi(), hitl_kpi(),
                              *generation_kpis(), serialization_kpi(), *load_kpis(),
-                             token_kpi(), cache_isolation_kpi(), cache_hit_kpi(),
+                             token_kpi(), cache_isolation_kpi(), cache_hit_kpi(), *planner_kpis(),
                              judge("KPI-29", None, note="needs LLM token usage from production traffic")]}
     for kid, why in NOT_BUILT.items():
         got.setdefault(kid, judge(kid, None, note=why))

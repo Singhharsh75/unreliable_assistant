@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import random
 import sys
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,7 @@ from harness.errors import AUTO_REPAIR_FAILED, SCHEMA_VALIDATION_FAILED, Harness
 from harness.loop import FinalAnswer  # noqa: E402
 from mcp_servers.state_store import StateStore  # noqa: E402
 from triage.llm_planner import LLMPlanner  # noqa: E402
+from triage.nli import entailment  # noqa: E402
 from triage.orchestrator import _tool_output_ok, _VerifiedPlanner  # noqa: E402
 from triage.subagents import SUBAGENTS, ScopedHarness  # noqa: E402
 
@@ -87,9 +89,9 @@ async def run_task(task: dict, client, sem: asyncio.Semaphore) -> dict:
         async with sem:
             return await rr.complete(client, rr.GENERATOR, user, system=system)
 
-    planner = Recording(LLMPlanner(complete, models))
+    planner = Recording(LLMPlanner(complete, models, entailment, record_thoughts=True))
     scoped = Counting(ScopedHarness(harness, SUBAGENTS["execution"]))
-    loop = BoundedLoop(scoped, _VerifiedPlanner(planner), CFG, observation_gate=_tool_output_ok)  # type: ignore[arg-type]
+    loop = BoundedLoop(scoped, _VerifiedPlanner(planner, entailment), CFG, observation_gate=_tool_output_ok)  # type: ignore[arg-type]
     base = {"tenant_id": TENANT, "user_id": "user_eval", "session_id": str(uuid4()), "traceparent": TP}
     res = await loop.run(task["goal"], base_ctx=base, caller_tier="TIER_2_COMPUTE")
     pending = any(o["tool"] == "submit_transaction" and o.get("ok") for o in res.observations)
@@ -108,18 +110,29 @@ async def main(limit: int) -> None:
     from mcp_servers.rag_server import embed
     import numpy as np
 
-    sims = []
+    sims, vecs = [], {}
     for r in rows:
         if r["steps"]:
-            v = embed([r["goal"]] + r["steps"])
+            vecs[r["id"]] = v = embed([r["goal"]] + r["steps"])
             r["drift"] = [float(np.dot(v[0], x)) for x in v[1:]]
             sims += r["drift"]
+    # control: the same goals against the steps of other tasks (3 per goal, fixed seed) show what "unrelated" scores
+    rng, ids, ctl = random.Random(1), list(vecs), []
+    for i in ids:
+        for _ in range(3):
+            j = rng.choice([k for k in ids if k != i])
+            ctl += [float(np.dot(vecs[i][0], x)) for x in vecs[j][1:]]
+    first = [r["drift"][0] for r in rows if r.get("drift")]
+    last = [r["drift"][-1] for r in rows if r.get("drift")]
     done = [r for r in rows if r["completed"]]
     calls, ok = sum(r["calls"] for r in rows), sum(r["first_pass"] for r in rows)
     rep = {"generator": rr.GENERATOR, "tasks": len(rows), "completed": len(done), "expected_tools_used": sum(r["expected_ok"] for r in rows),
            "kpi14_first_pass": ok / calls if calls else None, "tool_calls": calls,
            "kpi17_mean_steps": sum(r["iterations"] for r in done) / len(done) if done else None,
-           "kpi18_mean_cosine": float(np.mean(sims)) if sims else None, "steps_scored": len(sims), "rows": rows}
+           "kpi18_mean_cosine": float(np.mean(sims)) if sims else None, "steps_scored": len(sims),
+           "kpi18_unrelated_baseline": float(np.mean(ctl)) if ctl else None,
+           "kpi18_first_step": float(np.mean(first)) if first else None, "kpi18_last_step": float(np.mean(last)) if last else None,
+           "rows": rows}
     OUT.write_text(json.dumps(rep, indent=1))
     print({k: v for k, v in rep.items() if k != "rows"})
 

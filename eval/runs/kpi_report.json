@@ -1,14 +1,16 @@
 {
   "summary": {
     "counts": {
-      "PASS": 19,
-      "FAIL": 2,
+      "PASS": 21,
+      "FAIL": 4,
       "WAIVED": 3,
-      "NOT_MEASURED": 12
+      "NOT_MEASURED": 8
     },
     "failing": [
       "KPI-08",
-      "KPI-09"
+      "KPI-09",
+      "KPI-17",
+      "KPI-18"
     ],
     "release_blockers": [],
     "release_ready": false
@@ -19,7 +21,7 @@
       "stage": "Ingress & Triage",
       "name": "Pre-hook guardrail latency p95",
       "target": "<= 15 ms",
-      "value": 0.9038,
+      "value": 0.8789,
       "status": "PASS",
       "source": "eval/redteam.py timer (OTel hook.pre in production)",
       "note": "",
@@ -63,7 +65,7 @@
       "stage": "Ingress & Triage",
       "name": "Triage latency p95",
       "target": "<= 25 ms",
-      "value": 0.0729,
+      "value": 0.0655,
       "status": "PASS",
       "source": "classify() timer",
       "note": "",
@@ -85,7 +87,7 @@
       "stage": "Hybrid Retrieval",
       "name": "BM25 latency p95",
       "target": "<= 12 ms",
-      "value": 1.2,
+      "value": 1.4745,
       "status": "PASS",
       "source": "live retriever, 250 golden queries",
       "note": "",
@@ -96,7 +98,7 @@
       "stage": "Hybrid Retrieval",
       "name": "Bi-encoder + FAISS latency p95",
       "target": "<= 25 ms",
-      "value": 261.7485,
+      "value": 261.609,
       "status": "FAIL",
       "source": "live retriever, 250 golden queries",
       "note": "",
@@ -107,7 +109,7 @@
       "stage": "Hybrid Retrieval",
       "name": "Cross-encoder rerank latency p95",
       "target": "<= 45 ms",
-      "value": 1006.8685,
+      "value": 1027.646,
       "status": "FAIL",
       "source": "live retriever, 250 golden queries",
       "note": "",
@@ -162,10 +164,10 @@
       "stage": "Agent & Loop",
       "name": "Tool schema first-pass validation rate",
       "target": ">= 0.96 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "mcp.client spans",
-      "note": "production rate from mcp.client spans (error.code, repairs); no offline traffic to measure",
+      "value": 0.9783,
+      "status": "PASS",
+      "source": "eval/planner_eval.py (LLM planner, 30 scripted tasks, not production traffic)",
+      "note": "46 tool calls; a regex repair, schema failure or unknown tool counts as a miss",
       "blocking": false
     },
     {
@@ -195,10 +197,10 @@
       "stage": "Agent & Loop",
       "name": "Mean ReAct steps per completed task",
       "target": "<= 2.2 steps",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "OTel trace count",
-      "note": "needs an LLM planner and production traces; only scripted planners exist",
+      "value": 2.5385,
+      "status": "FAIL",
+      "source": "eval/planner_eval.py (LLM planner, 30 scripted tasks, not production traffic)",
+      "note": "26/30 tasks completed; read = 2 steps, write = lookup + submit + answer = 3; the task mix sets this number",
       "blocking": false
     },
     {
@@ -206,10 +208,10 @@
       "stage": "Agent & Loop",
       "name": "Context drift (goal cosine alignment)",
       "target": ">= 0.85 cosine",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "embedding drift audit",
-      "note": "needs an LLM planner and production traces; only scripted planners exist",
+      "value": 0.7107,
+      "status": "FAIL",
+      "source": "eval/planner_eval.py (LLM planner, 30 scripted tasks, not production traffic)",
+      "note": "goal vs step (thought + action), bge-large; unrelated-task baseline 0.60, first step 0.68, last step 0.71 (no decay over the run)",
       "blocking": false
     },
     {
@@ -294,10 +296,10 @@
       "stage": "Token & Graphify",
       "name": "Prompt token reduction",
       "target": ">= 0.45 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "token counter hook",
-      "note": "needs indexes/graph.json, the RAG index and eval/runs/retrieval.jsonl",
+      "value": 0.5736,
+      "status": "PASS",
+      "source": "token counter (build_prompt) on retrieval.jsonl",
+      "note": "223 answered golden questions; mean prompt 669 vs 1570 tokens",
       "blocking": false
     },
     {
@@ -338,7 +340,7 @@
       "stage": "Token & Graphify",
       "name": "MCP JSON-RPC serialization overhead p95",
       "target": "<= 4 ms",
-      "value": 0.0543,
+      "value": 0.0549,
       "status": "PASS",
       "source": "round-trip timer",
       "note": "500 round trips, 4 chunks of 2,000 chars",
