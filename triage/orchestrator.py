@@ -11,10 +11,13 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from typing import Any, Protocol
 from uuid import uuid4
 
 from eval.ragas_auditor import RagasAuditor, Sample
+from guardrails import SAFE_REFUSAL, run_prehooks
+from guardrails.review import ReviewQueue
 from contracts.models import ABSTAIN_TEXT, Chunk, HybridRetrieveOut
 from context.anchor import ReActPrompt
 from context.memory import SessionMemory
@@ -79,7 +82,10 @@ class Orchestrator:
         llm_pool: Bulkhead | None = None,
         config: RuntimeConfig | None = None,
         entail: Entail | None = None,
+        chunk_gate: Callable[[str, str], bool] | None = None,
     ) -> None:
+        # (chunk_hash, text) -> may the generator see it; index-time review verdict, live scan for unknown hashes
+        self.chunk_gate = chunk_gate or ReviewQueue().allows
         self.entail = entail  # NLI scorer (triage.nli.entailment); None keeps the lexical verifier
         self.retrieval = ScopedHarness(harness, SUBAGENTS["retrieval"])
         self.execution = ScopedHarness(harness, SUBAGENTS["execution"])
@@ -99,8 +105,14 @@ class Orchestrator:
             return out
 
     async def _handle(self, req: dict[str, Any], traceparent: str, caller_tier: Tier) -> dict[str, Any]:
+        blocked: str | None = None
+        try:  # PII redaction + injection shield; only the redacted text goes further (design.md §1.2.2 step 2)
+            query = run_prehooks(req["query"]).text
+        except HarnessError as e:
+            query, blocked = "", e.name
         with span("triage.classify") as s:
-            tri = classify(req["query"])
+            tri = (TriageResult("REJECT_OOS", "blocked", "none", "TIER_1_READ", "low", 1.0, blocked) if blocked
+                   else classify(query))
             s.set_attribute("route", tri.route)
         base = {"tenant_id": req["tenant_id"], "user_id": req["user_id"], "session_id": req["session_id"],
                 "traceparent": traceparent}
@@ -111,12 +123,14 @@ class Orchestrator:
         }
         draft_faithfulness: float | None = None  # set only when a draft was vetoed
         try:
-            if (canned := canned_response(tri.route)) is not None:
+            if blocked:
+                out.update(status="HALTED", answer=SAFE_REFUSAL)
+            elif (canned := canned_response(tri.route)) is not None:
                 out["answer"] = canned
             elif tri.route == "HYBRID_RAG":
-                draft_faithfulness = await self._rag(req["query"], base, caller_tier, out)
+                draft_faithfulness = await self._rag(query, base, caller_tier, out)
             else:
-                await self._execute(req["query"], base, caller_tier, out)
+                await self._execute(query, base, caller_tier, out)
         except Exception as e:  # upstream failure: no draft is released, and the request is still audited
             log.exception("route %s failed", tri.route)
             name = e.name if isinstance(e, HarnessError) else type(e).__name__
@@ -132,6 +146,12 @@ class Orchestrator:
             "ctx": _ctx(base), "query": query, "bm25_top_k": cfg.top_k, "dense_top_k": cfg.top_k,
             "min_rerank_score": cfg.min_rerank_score}, caller_tier=tier)
         r = res.value if isinstance(res.value, HybridRetrieveOut) else HybridRetrieveOut.model_validate(res.value)
+        with span("hook.chunks") as s:  # indirect injection: poisoned chunks never reach the generator
+            clean = [c for c in r.chunks if self.chunk_gate(c.chunk_hash, c.text)]
+            s.set_attribute("poisoned", len(r.chunks) - len(clean))
+        if len(clean) < len(r.chunks):
+            log.warning("dropped %d poisoned chunk(s)", len(r.chunks) - len(clean))
+            r = r.model_copy(update={"chunks": clean})
         if r.abstain or not r.chunks:  # deterministic abstention: the LLM is skipped
             out.update(answer=ABSTAIN_TEXT, abstained=True)
             return None
@@ -191,6 +211,7 @@ class Orchestrator:
                      draft_faithfulness: float | None) -> None:
         event = {
             "type": "agent.query", "route": tri.route, "intent": tri.intent, "risk_tier": tri.risk_tier,
+            "blocked": tri.reason if tri.intent == "blocked" else None,  # PII_BLOCKED | INJECTION_BLOCKED
             "status": out["status"], "abstained": out["abstained"],
             "vetoed": draft_faithfulness is not None, "draft_faithfulness": draft_faithfulness,
             "faithfulness": out["faithfulness"], "citations": out["citations"], "approval_id": out["approval_id"],

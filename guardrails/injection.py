@@ -38,10 +38,10 @@ STRONG = [re.compile(p, re.I | re.M) for p in [
     r"\bwithout (?:any )?(?:restrictions|filters|limitations|guardrails|censorship)\b",
     r"\b(?:reveal|print|show|repeat|display|output|leak|dump|recite|expose|echo|disclose|share)\b[^.\n]{0,30}\b(?:system|hidden|initial|original|secret|internal|full|entire|above|your)\b[^.\n]{0,12}\b(?:prompt|instructions?|message|rules|configuration|context)\b",
     r"\bwhat (?:is|are|were) your (?:system |initial |original |hidden )?(?:prompt|instructions|rules|directives)\b",
-    r"</?(?:system|assistant|instructions?|prompt)>|\[/?inst\]|<\|(?:im_start|im_end|system|endoftext)\|>|^\s*#{2,}\s*(?:system|instructions?|new instructions?)|^\s*(?:system|assistant)\s*:",
+    r"</?(?:system|assistant|instructions?|prompt)>|\[/?inst\]|<\|(?:im_start|im_end|system|endoftext)\|>|^\s*#{2,}\s*(?:system|instructions?|new instructions?)|^\s*(?:system|assistant)\s*:|\bsystem\s*:\s*you\b",
     r"\b(?:approve|release|quarantine|delete|submit|execute|run|ship|sign)\b[^.\n]{0,50}\bwithout\b[^.\n]{0,15}\b(?:approval|review|verification|confirmation|human|hitl|sign-?off|authori[sz]ation|checks?)\b",
-    r"\b(?:skip|bypass|disable|circumvent|turn off|switch off|evade|override|suppress)\b[^.\n]{0,20}\b(?:approval|verification|hitl|human review|guardrails?|safety|filters?|pii|redaction|audit|checks?|four-eyes|abstention)\b",
-    r"\b(?:show|list|dump|export|access|read|fetch|retrieve|give me|query)\b[^.\n]{0,40}\b(?:other|another|all|every|different)\s+(?:tenants?|customers?\W+(?:data|records))\b",
+    r"\b(?:skip|bypass|disable|circumvent|turn off|switch off|evade|override|suppress)\b[^.\n]{0,20}\b(?:approval|verification|hitl|human review|guardrails?|safety|filters?|pii|redaction|checks?|four-eyes|abstention)\b",
+    r"\b(?:show|list|dump|export|access|read|fetch|retrieve|give me|query)\b[^.;\n]{0,40}\b(?:other|another|all|every|different)\s+(?:tenants?|customers?\W+(?:data|records))\b",
     r"\btenant_id\b\s*(?:=|:|to|as)\s*(?!<)\S+[^.\n]{0,40}\b(?:instead|switch|change|use)\b|\b(?:switch|change|set|use)\b[^.\n]{0,20}\btenant[_ ]?id\b",
     rf"\b(?:send|post|forward|exfiltrate|email|upload|transmit)\b[^.\n]{{0,50}}\b(?:to|at)\b\s*(?:https?://|\S+@\S+)",
     r"!\[[^\]]*\]\(https?://[^)]*\?[^)]*\)",
@@ -66,6 +66,7 @@ WEAK = [re.compile(p, re.I | re.M) for p in [
 ]]
 _B64 = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{24,}={0,2}(?![A-Za-z0-9+/=])")
 _HEX = re.compile(r"(?<![0-9a-f])(?:[0-9a-f]{2}[\s:]?){16,}(?![0-9a-f])", re.I)
+_WIDE = re.compile(r"(?:\S(?:   | )){4,}")  # "I g n o r e   a l l": one space inside a word, three between words
 _SPACED = re.compile(r"(?<![a-z0-9])(?:[a-z][ ._\-*]){3,}[a-z](?![a-z0-9])", re.I)
 
 
@@ -78,11 +79,12 @@ class Scan:
 
 def _fold(text: str) -> str:
     t = normalize(text).translate(_HOMOGLYPH)
+    t = _WIDE.sub(lambda m: m.group(0).replace("   ", "\0").replace(" ", "").replace("\0", " "), t)
     t = _SPACED.sub(lambda m: re.sub(r"[ ._\-*]", "", m.group(0)), t)
 
     def leet(m: re.Match[str]) -> str:  # only inside tokens that also hold letters, so "8 °C" and "LOT-00044" survive
         w = m.group(0)
-        return w.translate(_LEET) if re.search(r"[a-z]", w, re.I) and re.search(r"[0-9@$!]", w) and not re.fullmatch(r"[A-Z]{2,}-\d+", w) else w
+        return w.translate(_LEET) if re.search(r"[a-z]", w, re.I) and re.search(r"[0-9@$!]", w) and not re.fullmatch(r"[A-Z]{2,}-\d+", w) and not re.search(r"\w@\w", w) else w
     return re.sub(r"[\w@$!]+", leet, t)
 
 

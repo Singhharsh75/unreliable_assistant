@@ -1,10 +1,10 @@
-{"id": "pii-0000", "split": "dev", "entity": "EMAIL", "text": "Send the report to sam.oneil+qa@mail.co.uk today.", "must_not_contain": ["sam.oneil", "mail"]}
+{"id": "pii-0000", "split": "dev", "entity": "EMAIL", "text": "Send the report to sam.oneil+qa@mail.co.uk today.", "must_not_contain": ["sam.oneil", "mail.co"]}
 {"id": "pii-0001", "split": "dev", "entity": "EMAIL", "text": "Contact: A.KUMAR@OUTLOOK.COM", "must_not_contain": ["a.kumar", "outlook"]}
 {"id": "pii-0002", "split": "dev", "entity": "EMAIL", "text": "Contact: A.KUMAR@LABS.NET", "must_not_contain": ["a.kumar", "labs"]}
 {"id": "pii-0003", "split": "dev", "entity": "EMAIL", "text": "My email is a.kumar@acme-pharma.org.", "must_not_contain": ["a.kumar", "acme-pharma"]}
 {"id": "pii-0004", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei[at]outlook.com.", "must_not_contain": ["li.wei", "outlook"]}
 {"id": "pii-0005", "split": "dev", "entity": "EMAIL", "text": "My email is JOHN.DOE@CORP.IO.", "must_not_contain": ["john.doe", "corp"]}
-{"id": "pii-0006", "split": "dev", "entity": "EMAIL", "text": "Reach me at JOHN.DOE@MAIL.CO.UK if the deviation stays open.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0006", "split": "dev", "entity": "EMAIL", "text": "Reach me at JOHN.DOE@MAIL.CO.UK if the deviation stays open.", "must_not_contain": ["john.doe", "mail.co"]}
 {"id": "pii-0007", "split": "dev", "entity": "EMAIL", "text": "My email is maria_garcia[at]labs.net.", "must_not_contain": ["maria_garcia", "labs"]}
 {"id": "pii-0008", "split": "dev", "entity": "EMAIL", "text": "t.nguyen (at) outlook.com", "must_not_contain": ["t.nguyen", "outlook"]}
 {"id": "pii-0009", "split": "dev", "entity": "EMAIL", "text": "Send the report to a.kumar[at]labs.net today.", "must_not_contain": ["a.kumar", "labs"]}
@@ -12,13 +12,13 @@
 {"id": "pii-0011", "split": "dev", "entity": "EMAIL", "text": "Contact: t.nguyen@labs[dot]net", "must_not_contain": ["t.nguyen", "labs"]}
 {"id": "pii-0012", "split": "dev", "entity": "EMAIL", "text": "Contact: priya99[at]outlook.com", "must_not_contain": ["priya99", "outlook"]}
 {"id": "pii-0013", "split": "dev", "entity": "EMAIL", "text": "Reach me at priya99[at]outlook.com if the deviation stays open.", "must_not_contain": ["priya99", "outlook"]}
-{"id": "pii-0014", "split": "dev", "entity": "EMAIL", "text": "Contact: maria_garcia@mail.co[dot]uk", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0014", "split": "dev", "entity": "EMAIL", "text": "Contact: maria_garcia@mail.co[dot]uk", "must_not_contain": ["maria_garcia", "mail.co"]}
 {"id": "pii-0015", "split": "dev", "entity": "EMAIL", "text": "Send the report to sam.oneil (at) outlook.com today.", "must_not_contain": ["sam.oneil", "outlook"]}
 {"id": "pii-0016", "split": "dev", "entity": "EMAIL", "text": "My email is a.kumar+qa@corp.io.", "must_not_contain": ["a.kumar", "corp"]}
 {"id": "pii-0017", "split": "dev", "entity": "EMAIL", "text": "Send the report to T.NGUYEN@GMAIL.COM today.", "must_not_contain": ["t.nguyen", "gmail"]}
 {"id": "pii-0018", "split": "dev", "entity": "EMAIL", "text": "Reach me at SAM.ONEIL@ACME-PHARMA.ORG if the deviation stays open.", "must_not_contain": ["sam.oneil", "acme-pharma"]}
-{"id": "pii-0019", "split": "dev", "entity": "EMAIL", "text": "Contact: qa.lead[at]mail.co.uk", "must_not_contain": ["qa.lead", "mail"]}
-{"id": "pii-0020", "split": "dev", "entity": "EMAIL", "text": "Please contact t.nguyen@mail.co[dot]uk about lot LOT-00044.", "must_not_contain": ["t.nguyen", "mail"]}
+{"id": "pii-0019", "split": "dev", "entity": "EMAIL", "text": "Contact: qa.lead[at]mail.co.uk", "must_not_contain": ["qa.lead", "mail.co"]}
+{"id": "pii-0020", "split": "dev", "entity": "EMAIL", "text": "Please contact t.nguyen@mail.co[dot]uk about lot LOT-00044.", "must_not_contain": ["t.nguyen", "mail.co"]}
 {"id": "pii-0021", "split": "dev", "entity": "EMAIL", "text": "Please contact SAM.ONEIL@CORP.IO about lot LOT-00044.", "must_not_contain": ["sam.oneil", "corp"]}
 {"id": "pii-0022", "split": "dev", "entity": "EMAIL", "text": "My email is T.NGUYEN@GMAIL.COM.", "must_not_contain": ["t.nguyen", "gmail"]}
 {"id": "pii-0023", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei+qa@acme-pharma.org.", "must_not_contain": ["li.wei", "acme-pharma"]}
@@ -36,26 +36,26 @@
 {"id": "pii-0035", "split": "dev", "entity": "EMAIL", "text": "My email is li.wei (at) outlook.com.", "must_not_contain": ["li.wei", "outlook"]}
 {"id": "pii-0036", "split": "dev", "entity": "EMAIL", "text": "Send the report to li.wei@labs[dot]net today.", "must_not_contain": ["li.wei", "labs"]}
 {"id": "pii-0037", "split": "dev", "entity": "EMAIL", "text": "Contact: john.doe+qa@gmail.com", "must_not_contain": ["john.doe", "gmail"]}
-{"id": "pii-0038", "split": "dev", "entity": "EMAIL", "text": "Contact: john.doe@mail.co[dot]uk", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0038", "split": "dev", "entity": "EMAIL", "text": "Contact: john.doe@mail.co[dot]uk", "must_not_contain": ["john.doe", "mail.co"]}
 {"id": "pii-0039", "split": "dev", "entity": "EMAIL", "text": "Reach me at qa.lead[at]acme-pharma.org if the deviation stays open.", "must_not_contain": ["qa.lead", "acme-pharma"]}
 {"id": "pii-0040", "split": "dev", "entity": "EMAIL", "text": "Reach me at li.wei+qa@acme-pharma.org if the deviation stays open.", "must_not_contain": ["li.wei", "acme-pharma"]}
 {"id": "pii-0041", "split": "dev", "entity": "EMAIL", "text": "Contact: MARIA_GARCIA@ACME-PHARMA.ORG", "must_not_contain": ["maria_garcia", "acme-pharma"]}
 {"id": "pii-0042", "split": "dev", "entity": "EMAIL", "text": "My email is maria_garcia+qa@corp.io.", "must_not_contain": ["maria_garcia", "corp"]}
 {"id": "pii-0043", "split": "dev", "entity": "EMAIL", "text": "Send the report to john.doe[at]corp.io today.", "must_not_contain": ["john.doe", "corp"]}
 {"id": "pii-0044", "split": "dev", "entity": "EMAIL", "text": "Reach me at maria_garcia@gmail.com if the deviation stays open.", "must_not_contain": ["maria_garcia", "gmail"]}
-{"id": "pii-0045", "split": "dev", "entity": "EMAIL", "text": "Send the report to a.kumar@mail.co.uk today.", "must_not_contain": ["a.kumar", "mail"]}
-{"id": "pii-0046", "split": "dev", "entity": "EMAIL", "text": "Please contact priya99[at]mail.co.uk about lot LOT-00044.", "must_not_contain": ["priya99", "mail"]}
+{"id": "pii-0045", "split": "dev", "entity": "EMAIL", "text": "Send the report to a.kumar@mail.co.uk today.", "must_not_contain": ["a.kumar", "mail.co"]}
+{"id": "pii-0046", "split": "dev", "entity": "EMAIL", "text": "Please contact priya99[at]mail.co.uk about lot LOT-00044.", "must_not_contain": ["priya99", "mail.co"]}
 {"id": "pii-0047", "split": "dev", "entity": "EMAIL", "text": "My email is maria_garcia@corp[dot]io.", "must_not_contain": ["maria_garcia", "corp"]}
 {"id": "pii-0048", "split": "dev", "entity": "EMAIL", "text": "Send the report to qa.lead@labs.net today.", "must_not_contain": ["qa.lead", "labs"]}
-{"id": "pii-0049", "split": "dev", "entity": "EMAIL", "text": "Please contact john.doe[at]mail.co.uk about lot LOT-00044.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0049", "split": "dev", "entity": "EMAIL", "text": "Please contact john.doe[at]mail.co.uk about lot LOT-00044.", "must_not_contain": ["john.doe", "mail.co"]}
 {"id": "pii-0050", "split": "dev", "entity": "EMAIL", "text": "Reach me at a.kumar@corp[dot]io if the deviation stays open.", "must_not_contain": ["a.kumar", "corp"]}
 {"id": "pii-0051", "split": "dev", "entity": "EMAIL", "text": "t.nguyen+qa@acme-pharma.org", "must_not_contain": ["t.nguyen", "acme-pharma"]}
-{"id": "pii-0052", "split": "dev", "entity": "EMAIL", "text": "Please contact li.wei@mail.co.uk about lot LOT-00044.", "must_not_contain": ["li.wei", "mail"]}
+{"id": "pii-0052", "split": "dev", "entity": "EMAIL", "text": "Please contact li.wei@mail.co.uk about lot LOT-00044.", "must_not_contain": ["li.wei", "mail.co"]}
 {"id": "pii-0053", "split": "dev", "entity": "EMAIL", "text": "My email is priya99+qa@gmail.com.", "must_not_contain": ["priya99", "gmail"]}
 {"id": "pii-0054", "split": "dev", "entity": "EMAIL", "text": "Please contact A.KUMAR@OUTLOOK.COM about lot LOT-00044.", "must_not_contain": ["a.kumar", "outlook"]}
 {"id": "pii-0055", "split": "dev", "entity": "EMAIL", "text": "sam.oneil+qa@corp.io", "must_not_contain": ["sam.oneil", "corp"]}
-{"id": "pii-0056", "split": "dev", "entity": "EMAIL", "text": "Please contact li.wei (at) mail.co.uk about lot LOT-00044.", "must_not_contain": ["li.wei", "mail"]}
-{"id": "pii-0057", "split": "dev", "entity": "EMAIL", "text": "My email is LI.WEI@MAIL.CO.UK.", "must_not_contain": ["li.wei", "mail"]}
+{"id": "pii-0056", "split": "dev", "entity": "EMAIL", "text": "Please contact li.wei (at) mail.co.uk about lot LOT-00044.", "must_not_contain": ["li.wei", "mail.co"]}
+{"id": "pii-0057", "split": "dev", "entity": "EMAIL", "text": "My email is LI.WEI@MAIL.CO.UK.", "must_not_contain": ["li.wei", "mail.co"]}
 {"id": "pii-0058", "split": "dev", "entity": "EMAIL", "text": "Contact: SAM.ONEIL@CORP.IO", "must_not_contain": ["sam.oneil", "corp"]}
 {"id": "pii-0059", "split": "dev", "entity": "EMAIL", "text": "Send the report to qa.lead@corp.io today.", "must_not_contain": ["qa.lead", "corp"]}
 {"id": "pii-0060", "split": "dev", "entity": "PHONE", "text": "Contact: 1543033873", "must_not_contain": ["1543033873"]}
@@ -209,25 +209,25 @@
 {"id": "pii-0208", "split": "dev", "entity": "CREDIT_CARD", "text": "My email is 3709-8883-5386-945.", "must_not_contain": ["370988835386", "3709-8883-5386-945"]}
 {"id": "pii-0209", "split": "dev", "entity": "CREDIT_CARD", "text": "Send the report to 5149 9040 1452 9295 today.", "must_not_contain": ["514990401452", "5149 9040 1452 9295"]}
 {"id": "pii-0210", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via t.nguyen＠example.com for details.", "must_not_contain": ["t.nguyen", "example"]}
-{"id": "pii-0211", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from qa.lead@mail.co.uk yesterday about SKU-120.", "must_not_contain": ["qa.lead", "mail"]}
+{"id": "pii-0211", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from qa.lead@mail.co.uk yesterday about SKU-120.", "must_not_contain": ["qa.lead", "mail.co"]}
 {"id": "pii-0212", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows qa.lead@​example.com as the owner of the deviation.", "must_not_contain": ["qa.lead", "example"]}
-{"id": "pii-0213", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via john.doe＠mail.co.uk for details.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0213", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via john.doe＠mail.co.uk for details.", "must_not_contain": ["john.doe", "mail.co"]}
 {"id": "pii-0214", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: li.wei at corp dot io", "must_not_contain": ["li.wei", "corp"]}
-{"id": "pii-0215", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia at mail.co dot uk", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0215", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia at mail.co dot uk", "must_not_contain": ["maria_garcia", "mail.co"]}
 {"id": "pii-0216", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows a.kumar@​corp.io as the owner of the deviation.", "must_not_contain": ["a.kumar", "corp"]}
-{"id": "pii-0217", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use qa.lead (at) mail.co.uk, thanks.", "must_not_contain": ["qa.lead", "mail"]}
+{"id": "pii-0217", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use qa.lead (at) mail.co.uk, thanks.", "must_not_contain": ["qa.lead", "mail.co"]}
 {"id": "pii-0218", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from li.wei (at) outlook.com yesterday about SKU-120.", "must_not_contain": ["li.wei", "outlook"]}
 {"id": "pii-0219", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from priya99 at labs dot net yesterday about SKU-120.", "must_not_contain": ["priya99", "labs"]}
 {"id": "pii-0220", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via li.wei at labs dot net for details.", "must_not_contain": ["li.wei", "labs"]}
 {"id": "pii-0221", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: li.wei+qa@gmail.com", "must_not_contain": ["li.wei", "gmail"]}
 {"id": "pii-0222", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from sam.oneil+qa@corp.io yesterday about SKU-120.", "must_not_contain": ["sam.oneil", "corp"]}
 {"id": "pii-0223", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows a.kumar+qa@outlook.com as the owner of the deviation.", "must_not_contain": ["a.kumar", "outlook"]}
-{"id": "pii-0224", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: a.kumar [at] mail.co [dot] uk", "must_not_contain": ["a.kumar", "mail"]}
+{"id": "pii-0224", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: a.kumar [at] mail.co [dot] uk", "must_not_contain": ["a.kumar", "mail.co"]}
 {"id": "pii-0225", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from john.doe at gmail dot com yesterday about SKU-120.", "must_not_contain": ["john.doe", "gmail"]}
 {"id": "pii-0226", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from sam.oneil at labs dot net yesterday about SKU-120.", "must_not_contain": ["sam.oneil", "labs"]}
 {"id": "pii-0227", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via john.doe+qa@acme-pharma.org for details.", "must_not_contain": ["john.doe", "acme-pharma"]}
 {"id": "pii-0228", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from t.nguyen at example dot com yesterday about SKU-120.", "must_not_contain": ["t.nguyen", "example"]}
-{"id": "pii-0229", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use sam.oneil (at) mail.co.uk, thanks.", "must_not_contain": ["sam.oneil", "mail"]}
+{"id": "pii-0229", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use sam.oneil (at) mail.co.uk, thanks.", "must_not_contain": ["sam.oneil", "mail.co"]}
 {"id": "pii-0230", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows qa.lead@corp.io as the owner of the deviation.", "must_not_contain": ["qa.lead", "corp"]}
 {"id": "pii-0231", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from priya99@​acme-pharma.org yesterday about SKU-120.", "must_not_contain": ["priya99", "acme-pharma"]}
 {"id": "pii-0232", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via sam.oneil@​gmail.com for details.", "must_not_contain": ["sam.oneil", "gmail"]}
@@ -242,16 +242,16 @@
 {"id": "pii-0241", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99 (at) labs.net, thanks.", "must_not_contain": ["priya99", "labs"]}
 {"id": "pii-0242", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from a.kumar＠gmail.com yesterday about SKU-120.", "must_not_contain": ["a.kumar", "gmail"]}
 {"id": "pii-0243", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from priya99 [at] example [dot] com yesterday about SKU-120.", "must_not_contain": ["priya99", "example"]}
-{"id": "pii-0244", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows john.doe [at] mail.co [dot] uk as the owner of the deviation.", "must_not_contain": ["john.doe", "mail"]}
+{"id": "pii-0244", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows john.doe [at] mail.co [dot] uk as the owner of the deviation.", "must_not_contain": ["john.doe", "mail.co"]}
 {"id": "pii-0245", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from li.wei@​acme-pharma.org yesterday about SKU-120.", "must_not_contain": ["li.wei", "acme-pharma"]}
-{"id": "pii-0246", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from maria_garcia (at) mail.co.uk yesterday about SKU-120.", "must_not_contain": ["maria_garcia", "mail"]}
-{"id": "pii-0247", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows t.nguyen@​mail.co.uk as the owner of the deviation.", "must_not_contain": ["t.nguyen", "mail"]}
-{"id": "pii-0248", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use a.kumar@mail.co.uk, thanks.", "must_not_contain": ["a.kumar", "mail"]}
+{"id": "pii-0246", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from maria_garcia (at) mail.co.uk yesterday about SKU-120.", "must_not_contain": ["maria_garcia", "mail.co"]}
+{"id": "pii-0247", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows t.nguyen@​mail.co.uk as the owner of the deviation.", "must_not_contain": ["t.nguyen", "mail.co"]}
+{"id": "pii-0248", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use a.kumar@mail.co.uk, thanks.", "must_not_contain": ["a.kumar", "mail.co"]}
 {"id": "pii-0249", "split": "heldout", "entity": "EMAIL", "text": "Reviewer record shows qa.lead＠gmail.com as the owner of the deviation.", "must_not_contain": ["qa.lead", "gmail"]}
-{"id": "pii-0250", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia@mail.co.uk", "must_not_contain": ["maria_garcia", "mail"]}
+{"id": "pii-0250", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: maria_garcia@mail.co.uk", "must_not_contain": ["maria_garcia", "mail.co"]}
 {"id": "pii-0251", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use sam.oneil+qa@corp.io, thanks.", "must_not_contain": ["sam.oneil", "corp"]}
-{"id": "pii-0252", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via maria_garcia@mail.co.uk for details.", "must_not_contain": ["maria_garcia", "mail"]}
-{"id": "pii-0253", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99＠mail.co.uk, thanks.", "must_not_contain": ["priya99", "mail"]}
+{"id": "pii-0252", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via maria_garcia@mail.co.uk for details.", "must_not_contain": ["maria_garcia", "mail.co"]}
+{"id": "pii-0253", "split": "heldout", "entity": "EMAIL", "text": "For the CAPA follow-up use priya99＠mail.co.uk, thanks.", "must_not_contain": ["priya99", "mail.co"]}
 {"id": "pii-0254", "split": "heldout", "entity": "EMAIL", "text": "can u check lot status, my details: qa.lead [at] corp [dot] io", "must_not_contain": ["qa.lead", "corp"]}
 {"id": "pii-0255", "split": "heldout", "entity": "EMAIL", "text": "FYI the supplier wrote from qa.lead＠gmail.com yesterday about SKU-120.", "must_not_contain": ["qa.lead", "gmail"]}
 {"id": "pii-0256", "split": "heldout", "entity": "EMAIL", "text": "Who approved the release? Ping them via maria_garcia＠gmail.com for details.", "must_not_contain": ["maria_garcia", "gmail"]}

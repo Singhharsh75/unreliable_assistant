@@ -1,18 +1,18 @@
 {
   "summary": {
     "counts": {
-      "PASS": 12,
-      "FAIL": 3,
+      "PASS": 14,
+      "FAIL": 4,
       "WAIVED": 3,
-      "NOT_MEASURED": 18
+      "NOT_MEASURED": 15
     },
     "failing": [
+      "KPI-03",
       "KPI-08",
       "KPI-09",
       "KPI-24"
     ],
     "release_blockers": [
-      "KPI-02",
       "KPI-03",
       "KPI-24",
       "KPI-28"
@@ -25,10 +25,10 @@
       "stage": "Ingress & Triage",
       "name": "Pre-hook guardrail latency p95",
       "target": "<= 15 ms",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "OTel hook.pre",
-      "note": "pre-hooks (PII redactor, injection shield) are Gate 13",
+      "value": 0.3821,
+      "status": "PASS",
+      "source": "eval/redteam.py timer (OTel hook.pre in production)",
+      "note": "",
       "blocking": false
     },
     {
@@ -36,10 +36,10 @@
       "stage": "Ingress & Triage",
       "name": "PII redaction recall",
       "target": ">= 0.998 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "Presidio/regex audit",
-      "note": "PII redactor is Gate 13",
+      "value": 1.0,
+      "status": "PASS",
+      "source": "eval/redteam/pii.jsonl",
+      "note": "210 held-out items",
       "blocking": true
     },
     {
@@ -47,10 +47,10 @@
       "stage": "Ingress & Triage",
       "name": "Prompt-injection block rate",
       "target": ">= 0.995 ratio",
-      "value": null,
-      "status": "NOT_MEASURED",
-      "source": "Red-team benchmark",
-      "note": "injection shield and red-team benchmark are Gates 13-14",
+      "value": 0.9468,
+      "status": "FAIL",
+      "source": "eval/redteam.py e2e_run on eval/redteam/injection.jsonl",
+      "note": "282 held-out items; shield alone 0.4149; benign false-positive rate 0.0071",
       "blocking": true
     },
     {
@@ -69,7 +69,7 @@
       "stage": "Ingress & Triage",
       "name": "Triage latency p95",
       "target": "<= 25 ms",
-      "value": 0.0694,
+      "value": 0.0263,
       "status": "PASS",
       "source": "classify() timer",
       "note": "",
@@ -278,10 +278,10 @@
       "stage": "Generation",
       "name": "Unsupported claim rate",
       "target": "<= 0.005 ratio",
-      "value": 0.0854,
+      "value": 0.0837,
       "status": "FAIL",
       "source": "NLI claim verifier on answers.jsonl",
-      "note": "52/609 draft claims unsupported before the veto. The release path vetoes them, so released answers score 0 against this same verifier; this is the generator's rate",
+      "note": "51/609 draft claims unsupported before the veto. The release path vetoes them, so released answers score 0 against this same verifier; this is the generator's rate",
       "blocking": true
     },
     {
@@ -344,7 +344,7 @@
       "stage": "Token & Graphify",
       "name": "MCP JSON-RPC serialization overhead p95",
       "target": "<= 4 ms",
-      "value": 0.0671,
+      "value": 0.0242,
       "status": "PASS",
       "source": "round-trip timer",
       "note": "500 round trips, 4 chunks of 2,000 chars",

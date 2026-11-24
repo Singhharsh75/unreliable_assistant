@@ -1,7 +1,7 @@
 """Gate 3: mcp-hybrid-rag — BM25 ∥ bi-encoder+FAISS → RRF → cross-encoder (design.md §1.2.2, ADR-001).
 
 Usage:
-  uv run mcp_servers/rag_server.py build            # chunk + embed knowledge_vault/ into indexes/rag/
+  uv run mcp_servers/rag_server.py build            # chunk + embed knowledge_vault/ into indexes/rag/, injection scan
   uv run mcp_servers/rag_server.py query "..."      # one retrieval, printed as JSON
   uv run mcp_servers/rag_server.py bench [N]        # per-stage p95 latency (KPI-07/08/09)
   uv run mcp_servers/rag_server.py                  # serve MCP over stdio
@@ -158,6 +158,9 @@ def build(vault: Path = VAULT, out: Path = INDEX) -> int:
     out.mkdir(parents=True, exist_ok=True)
     faiss.write_index(index, str(out / "dense.faiss"))
     (out / "chunks.jsonl").write_text("".join(json.dumps(c) + "\n" for c in chunks))
+    from guardrails.review import ReviewQueue  # lazy: guardrails.classifier imports this module
+
+    print("injection review:", ReviewQueue(out / "chunk_review.json").scan(chunks))
     return len(chunks)
 
 
@@ -166,11 +169,16 @@ class Retriever:
         self.chunks = [json.loads(line) for line in (index_dir / "chunks.jsonl").read_text().splitlines()]
         self.bm25 = BM25Okapi([c["tokens"] for c in self.chunks], k1=BM25_K1, b=BM25_B)
         self.dense = faiss.read_index(str(index_dir / "dense.faiss"))
+        from guardrails.review import ReviewQueue
+
+        self.review = ReviewQueue(index_dir / "chunk_review.json")
         bi_encoder(), cross_encoder()  # load models before the first request
 
     def _allowed(self, tenant: str | None, domain: str | None) -> np.ndarray:
         """Boolean mask over chunks the caller may see. Applied before top-k so private chunks are never crowded out."""
+        review = self.review.rows()  # QUARANTINED / REJECTED chunks are never served; unknown ones are left to the gate
         return np.array([(c["tenants"] is None or tenant in c["tenants"]) and (domain is None or c["domain"] == domain)
+                         and review.get(c["chunk_hash"], {}).get("status", "CLEAN") in ("CLEAN", "APPROVED")
                          for c in self.chunks], dtype=bool)  # O(N) per request; precompute per tenant at scale
 
     def _bm25(self, query: str, k: int, allowed: np.ndarray) -> list[tuple[int, float]]:

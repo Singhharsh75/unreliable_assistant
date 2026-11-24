@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from guardrails import injection, pii
+from guardrails import classifier, injection, pii
 from harness.errors import INJECTION_BLOCKED, PII_BLOCKED, HarnessError
 from observability.tracing import span
 
@@ -43,8 +43,10 @@ def run_prehooks(text: str) -> PreResult:
 
 
 def is_poisoned(chunk_text: str) -> bool:
-    """Indirect injection: retrieved or tool-supplied text that tries to instruct the model. Fails closed."""
+    """Indirect injection: retrieved or tool-supplied text that tries to instruct the model. Regex shield, then the
+    classifier on the canonicalized text. Fails closed."""
     try:
-        return injection.scan(chunk_text).blocked
+        return (injection.scan(chunk_text).blocked
+                or classifier.injection_prob(injection._fold(chunk_text)) >= classifier.THRESHOLD)
     except Exception:
         return True

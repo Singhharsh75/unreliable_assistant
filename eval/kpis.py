@@ -104,9 +104,6 @@ KPIS = [Kpi(*row) for row in [
 BY_ID = {k.id: k for k in KPIS}
 
 NOT_BUILT = {
-    "KPI-01": "pre-hooks (PII redactor, injection shield) are Gate 13",
-    "KPI-02": "PII redactor is Gate 13",
-    "KPI-03": "injection shield and red-team benchmark are Gates 13-14",
     "KPI-14": "production rate from mcp.client spans (error.code, repairs); no offline traffic to measure",
     "KPI-17": "needs an LLM planner and production traces; only scripted planners exist",
     "KPI-18": "needs an LLM planner and production traces; only scripted planners exist",
@@ -163,6 +160,19 @@ def triage_kpis() -> list[Result]:
     return [judge("KPI-04", acc, note=f"{len(labeled)} labeled queries"),
             judge("KPI-05", p95(times)),
             judge("KPI-06", refusal, note=f"{len(golden)} benign golden questions")]
+
+
+def guardrail_kpis() -> list[Result]:
+    """Red-team benchmark (eval/redteam, Gate 14); recall and block rate are scored on the held-out split only."""
+    from eval import redteam
+
+    p, i, e = redteam.pii_run("heldout"), redteam.injection_run("heldout"), redteam.e2e_run("heldout")
+    fp = redteam.false_positives()["false_positive_rate"]
+    return [judge("KPI-01", redteam.latency_p95(), source="eval/redteam.py timer (OTel hook.pre in production)"),
+            judge("KPI-02", p["recall"], source="eval/redteam/pii.jsonl", note=f"{p['n']} held-out items"),
+            # end to end against an LLM that obeys every injection (ADR-010): only code controls count
+            judge("KPI-03", e["block_rate"], source="eval/redteam.py e2e_run on eval/redteam/injection.jsonl",
+                  note=f"{e['n']} held-out items; shield alone {i['block_rate']:.4f}; benign false-positive rate {fp:.4f}")]
 
 
 # --- Hybrid Retrieval ---------------------------------------------------------------------------------
@@ -441,7 +451,7 @@ def serialization_kpi() -> Result:
 # --- report ------------------------------------------------------------------------------------------------
 
 def measure(live: bool = False) -> list[Result]:
-    got = {r.id: r for r in [*triage_kpis(), *retrieval_kpis(live), repair_kpi(), chaos_kpi(), hitl_kpi(),
+    got = {r.id: r for r in [*triage_kpis(), *guardrail_kpis(), *retrieval_kpis(live), repair_kpi(), chaos_kpi(), hitl_kpi(),
                              *generation_kpis(), serialization_kpi()]}
     for kid, why in NOT_BUILT.items():
         got.setdefault(kid, judge(kid, None, note=why))
